@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Evolution of Research, Optimal Replication Rate Simulator</title>
+<style>
+  /* ---------- Light theme (default, FLoRA-style) ---------- */
+  :root{
+    --bg:#f4f5f7; --surface:#ffffff; --panel:#ffffff; --panel2:#eef0f4; --border:#e2e5ea;
+    --txt:#1f2328; --muted:#5b636b; --accent:#8a1d44; --accent-soft:#f3e7ec;
+    --good:#1a7f37; --bad:#b42318; --pruned:#9aa0a6; --root:#8250df; --amber:#b8860b;
+    --canvas:#ffffff; --grid:#e6e9ee; --header:#2b2b2b; --header-txt:#f4f5f7;
+    --shadow:rgba(140,149,159,.18); --tech:#0f6f8a;
+    --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
+  }
+  /* ---------- Dark theme ---------- */
+  body.dark{
+    --bg:#0e1116; --surface:#15181d; --panel:#181c22; --panel2:#1f242c; --border:#2a3038;
+    --txt:#e6edf3; --muted:#9aa4af; --accent:#d96a92; --accent-soft:#2a1822;
+    --good:#3fb950; --bad:#f85149; --pruned:#6e7681; --root:#bc8cff; --amber:#d29922;
+    --canvas:#0a0e14; --grid:#2a3038; --header:#15181d; --header-txt:#e6edf3;
+    --shadow:rgba(0,0,0,.45); --tech:#39b6d8;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--txt);
+    font:14px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    transition:background .25s,color .25s;
+  }
+
+  /* top bar */
+  .topbar{
+    background:var(--header); color:var(--header-txt);
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 28px; border-bottom:1px solid rgba(255,255,255,.06);
+  }
+  .brand{font-family:var(--serif); font-weight:700; font-size:15px; letter-spacing:.02em; color:var(--header-txt); text-decoration:none}
+  .brand:hover{text-decoration:underline; text-underline-offset:3px}
+  .toggle{
+    width:42px; height:42px; border-radius:50%; cursor:pointer;
+    background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16);
+    color:var(--header-txt); display:flex; align-items:center; justify-content:center;
+    transition:background .2s;
+  }
+  .toggle:hover{background:rgba(255,255,255,.16)}
+
+  /* hero */
+  .hero{background:var(--surface); text-align:center; padding:46px 20px 30px}
+  .hero .mark{display:flex; justify-content:center; margin-bottom:14px; color:var(--accent)}
+  .hero h1{font-family:var(--serif); color:var(--accent); font-size:46px; margin:0; font-weight:700; letter-spacing:.01em}
+  .hero .rule{width:60px; height:2px; background:var(--border); margin:18px auto}
+  .hero .sub{color:var(--muted); font-size:17px; margin:0; font-weight:500}
+
+  /* tabs */
+  .tabs{display:flex; gap:28px; justify-content:center; background:var(--surface);
+        border-top:1px solid var(--border); border-bottom:1px solid var(--border); padding:0 20px}
+  .tab{
+    padding:16px 4px; cursor:pointer; color:var(--muted); font-weight:600; font-size:15px;
+    border-bottom:3px solid transparent; font-family:var(--serif);
+  }
+  .tab.active{color:var(--accent); border-bottom-color:var(--accent)}
+
+  .view{display:none; padding:24px 28px; max-width:1320px; margin:0 auto}
+  .view.active{display:block}
+  .layout{display:grid; grid-template-columns:350px 1fr; gap:20px}
+  @media(max-width:980px){.layout{grid-template-columns:1fr}}
+
+  /* sci-fi-tinged panels (subtle No Man's Sky bracket corners) */
+  .panel{position:relative; background:var(--panel); border:1px solid var(--border);
+         border-radius:10px; padding:18px; box-shadow:0 1px 4px var(--shadow)}
+  .panel::before, .canvas-wrap::before{
+    content:""; position:absolute; top:7px; right:7px; width:13px; height:13px;
+    border-top:2px solid var(--accent); border-right:2px solid var(--accent); opacity:.45;
+  }
+  .panel::after, .canvas-wrap::after{
+    content:""; position:absolute; bottom:7px; left:7px; width:13px; height:13px;
+    border-bottom:2px solid var(--accent); border-left:2px solid var(--accent); opacity:.45;
+  }
+  .panel h3, .canvas-wrap h3{
+    margin:0 0 14px; font-size:11.5px; text-transform:uppercase; letter-spacing:.14em;
+    color:var(--muted); font-weight:700;
+  }
+
+  .ctrl{margin-bottom:15px}
+  .ctrl label{display:flex; justify-content:space-between; align-items:center; font-size:12.5px; margin-bottom:6px; cursor:help}
+  .ctrl label .name{display:inline-flex; align-items:center; gap:6px; font-weight:600}
+  .ctrl label .q{
+    position:relative; display:inline-flex; align-items:center; justify-content:center;
+    width:15px; height:15px; border-radius:50%; background:var(--panel2); border:1px solid var(--border);
+    color:var(--muted); font-size:10px; font-weight:700; cursor:help; flex-shrink:0;
+  }
+  .ctrl label .q::after{
+    content:attr(data-tip); position:absolute; bottom:calc(100% + 7px); left:50%;
+    transform:translateX(-50%); width:240px; background:#1f2328; color:#e6edf3;
+    border-radius:8px; padding:8px 11px; font-size:12px; font-weight:400; font-family:-apple-system,sans-serif;
+    text-transform:none; letter-spacing:0; line-height:1.5; white-space:normal;
+    pointer-events:none; opacity:0; transition:opacity .15s; z-index:200;
+    box-shadow:0 4px 16px rgba(0,0,0,.35);
+  }
+  body.dark .ctrl label .q::after{background:#e6edf3; color:#1f2328}
+  .ctrl label .q:hover::after{opacity:1}
+  .ctrl label .val{color:var(--accent); font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace; font-weight:700}
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:12px; align-items:end}
+  .plots{display:grid; grid-template-columns:1fr 1fr; gap:18px; align-items:start}
+  @media(max-width:1200px){.plots{grid-template-columns:1fr}}
+  input[type=range]{width:100%; accent-color:var(--accent)}
+  input[type=number],select{
+    width:100%; background:var(--panel2); color:var(--txt); border:1px solid var(--border);
+    border-radius:7px; padding:7px 9px; font-size:13px;
+  }
+  .row{display:grid; grid-template-columns:1fr 1fr; gap:12px}
+  .btns{display:flex; flex-wrap:wrap; gap:9px; margin-top:8px}
+  button.act{background:var(--accent); color:#fff; border:none; border-radius:7px; padding:10px 15px; font-weight:700; cursor:pointer; font-size:13px; letter-spacing:.02em}
+  button.sec{background:var(--panel2); color:var(--txt); border:1px solid var(--border); border-radius:7px; padding:10px 15px; font-weight:700; cursor:pointer; font-size:13px}
+  button:hover{filter:brightness(1.05)}
+  button:disabled{opacity:.5; cursor:not-allowed}
+
+  .stats{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:18px}
+  @media(max-width:680px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{position:relative; background:var(--panel); border:1px solid var(--border); border-radius:10px;
+        padding:18px 16px; box-shadow:0 1px 4px var(--shadow); text-align:center; overflow:hidden}
+  .stat::before{content:""; position:absolute; top:0; left:0; right:0; height:3px; background:var(--accent); opacity:.85}
+  .stat .v{font-size:30px; font-weight:750; font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace; letter-spacing:-.01em}
+  .stat .k{color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.09em; margin-top:4px; font-weight:600}
+  .stat.c-prec .v{color:var(--accent)} .stat.c-prec::before{background:var(--accent)}
+  .stat.c-live .v{color:var(--txt)}    .stat.c-live::before{background:var(--tech)}
+  .stat.c-tp .v{color:var(--good)}     .stat.c-tp::before{background:var(--good)}
+  .stat.c-root .v{color:var(--amber)}  .stat.c-root::before{background:var(--amber)}
+
+  .canvas-wrap{position:relative; background:var(--panel); border:1px solid var(--border);
+               border-radius:10px; padding:14px; margin-bottom:18px; box-shadow:0 1px 4px var(--shadow)}
+  canvas{width:100%; display:block; border-radius:7px; background:var(--canvas); border:1px solid var(--border)}
+  .legend{display:flex; gap:18px; flex-wrap:wrap; margin:10px 4px 2px; font-size:12px; color:var(--muted)}
+  .legend span{display:inline-flex; align-items:center; gap:7px}
+  .dot{width:11px; height:11px; border-radius:50%; display:inline-block}
+  .ring{width:12px; height:12px; border-radius:50%; display:inline-block; border:2px solid var(--root); box-sizing:border-box}
+
+  .about{max-width:900px}
+  .about h2{font-family:var(--serif); font-size:20px; color:var(--accent); margin-top:26px; border-bottom:1px solid var(--border); padding-bottom:7px}
+  .about p{color:var(--txt)}
+  .about code{background:var(--panel2); padding:1px 6px; border-radius:5px; color:var(--accent); font-size:12.5px}
+  .about table{border-collapse:collapse; width:100%; margin:12px 0}
+  .about th,.about td{border:1px solid var(--border); padding:8px 11px; text-align:left; font-size:13px}
+  .about th{background:var(--panel2)}
+  .pill{display:inline-block; background:var(--accent-soft); border:1px solid var(--border); border-radius:999px; padding:2px 11px; font-size:12px; color:var(--accent); margin-right:6px; font-weight:600}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <a class="brand" href="https://forrt.org/replication-hub/" target="_blank" rel="noopener">FORRT Replication Hub</a>
+  <button class="toggle" id="themeBtn" title="Switch between light and dark appearance" aria-label="Toggle theme"></button>
+</div>
+
+<div class="hero">
+  <div class="mark" aria-hidden="true">
+    <svg width="74" height="60" viewBox="0 0 100 80" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+      <!-- root with two extensions; left branch has 2, right branch has 3 -->
+      <line x1="50" y1="74" x2="32" y2="48"/><line x1="50" y1="74" x2="68" y2="48"/>
+      <line x1="32" y1="48" x2="20" y2="22"/><line x1="32" y1="48" x2="40" y2="22"/>
+      <line x1="68" y1="48" x2="58" y2="22"/><line x1="68" y1="48" x2="70" y2="22"/><line x1="68" y1="48" x2="82" y2="22"/>
+      <g fill="currentColor" stroke="none">
+        <circle cx="50" cy="74" r="5"/>
+        <circle cx="32" cy="48" r="4"/><circle cx="68" cy="48" r="4"/>
+        <circle cx="20" cy="22" r="3.4"/><circle cx="40" cy="22" r="3.4"/>
+        <circle cx="58" cy="22" r="3.4"/><circle cx="70" cy="22" r="3.4"/><circle cx="82" cy="22" r="3.4"/>
+      </g>
+    </svg>
+  </div>
+  <h1>Evolution of Research</h1>
+  <div class="rule"></div>
+  <p class="sub">Optimal Replication Rate Simulator</p>
+</div>
+
+<div class="tabs">
+  <div class="tab active" data-tab="sim">Simulation</div>
+  <div class="tab" data-tab="about">About the Model</div>
+</div>
+
+<!-- ============================ SIMULATION VIEW ============================ -->
+<section class="view active" id="view-sim">
+  <div class="layout">
+    <!-- Controls -->
+    <div class="panel">
+      <h3>Parameters</h3>
+
+      <div class="ctrl">
+        <label title="Replication rate. Each generation, with probability r the field re-tests an existing finding instead of producing a new one. r = 0 means the literature is never checked; r = 1 means it only ever re-checks and never grows. The interesting optimum lies in between.">
+          <span class="name">Replication Rate <code class="var">r</code><span class="q">?</span></span><span class="val" id="v_r">0.40</span></label>
+        <input type="range" id="r" min="0" max="1" step="0.01" value="0.40">
+      </div>
+      <div class="ctrl">
+        <label title="Base truth probability. The chance that a freshly proposed claim is actually true, applied to new root studies and to extensions whose base finding is true. Low p_next models an error-prone, hard-to-study field.">
+          <span class="name">Base Truth Probability <code class="var">p_next</code><span class="q">?</span></span><span class="val" id="v_pnext">0.30</span></label>
+        <input type="range" id="pnext" min="0" max="1" step="0.01" value="0.30">
+      </div>
+      <div class="ctrl">
+        <label title="Sensitivity (true-positive rate): the probability that a TRUE claim passes its test and gets published. Higher alpha means good studies are reliably detected.">
+          <span class="name">Sensitivity (TP rate) <code class="var">alpha</code><span class="q">?</span></span><span class="val" id="v_alpha">0.80</span></label>
+        <input type="range" id="alpha" min="0" max="1" step="0.01" value="0.80">
+      </div>
+      <div class="ctrl">
+        <label title="False-positive rate: the probability that a FALSE claim nonetheless tests positive and gets published. Higher beta floods the literature with false findings, the main driver of low precision.">
+          <span class="name">False-Positive Rate <code class="var">beta</code><span class="q">?</span></span><span class="val" id="v_beta">0.20</span></label>
+        <input type="range" id="beta" min="0" max="1" step="0.01" value="0.20">
+      </div>
+      <div class="ctrl">
+        <label title="File-drawer rate: when a replication fails (refutes a finding), this is the probability the failure is suppressed and never published. High f lets refuted, false findings survive in the literature.">
+          <span class="name">File-Drawer Rate <code class="var">f</code><span class="q">?</span></span><span class="val" id="v_f">0.50</span></label>
+        <input type="range" id="f" min="0" max="1" step="0.01" value="0.50">
+      </div>
+      <div class="ctrl">
+        <label title="New-strand probability. When the field does something novel rather than replicate, this is the chance it founds a brand-new independent paradigm (a new root with no parent) instead of extending existing work. Higher values produce a forest of many separate research lineages.">
+          <span class="name">New-Strand Probability <code class="var">p_new_root</code><span class="q">?</span></span><span class="val" id="v_pnr">0.15</span></label>
+        <input type="range" id="pnr" min="0" max="1" step="0.01" value="0.15">
+      </div>
+
+      <div class="row">
+        <div class="ctrl">
+          <label title="How many findings or acts the simulation runs. More generations means a larger, more developed knowledge tree.">
+            <span class="name">Max Generations <code class="var">gens</code><span class="q">?</span></span></label>
+          <input type="number" id="gens" min="10" max="20000" step="10" value="600">
+        </div>
+        <div class="ctrl">
+          <label title="Random seed for reproducibility. The same seed always produces the same run. Set the seed to 0 to draw a fresh random seed on every run.">
+            <span class="name">Seed <code class="var">seed</code><span class="q">?</span></span></label>
+          <input type="number" id="seed" step="1" value="2026">
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="ctrl">
+          <label title="Which living finding a replication targets. 'last' re-checks the newest finding (the frontier); 'first' re-checks the oldest (the foundations); 'random' picks any living finding uniformly.">
+            <span class="name">Replication Depth <code class="var">depth</code><span class="q">?</span></span></label>
+          <select id="depth">
+            <option value="last" selected>last (frontier)</option>
+            <option value="first">first (foundations)</option>
+            <option value="random">random</option>
+          </select>
+        </div>
+        <div class="ctrl">
+          <label title="Which living finding a new extension attaches to. 'frontier' favours the newest results; 'conservative' favours old, established foundations; 'random' attaches anywhere.">
+            <span class="name">Extension Anchoring <code class="var">anchor</code><span class="q">?</span></span></label>
+          <select id="anchor">
+            <option value="frontier" selected>frontier</option>
+            <option value="random">random</option>
+            <option value="conservative">conservative</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="btns">
+        <button class="act" id="run" title="Run one stochastic simulation with the current parameters and animate the result.">Run simulation</button>
+        <button class="sec" id="sweep" title="Sweep r: hold every other parameter fixed and re-run the model for replication rates from 0 to 1 (averaging several seeds at each step). The orange curve shows precision as a function of r, and marks r*, the replication rate that maximises precision. The r slider then snaps to that optimum.">Sweep r</button>
+        <button class="sec" id="export" title="Download the full run (parameters, summary, adjacency matrix and node list) as a .json file.">Export JSON</button>
+      </div>
+    </div>
+
+    <!-- Output -->
+    <div>
+      <div class="stats">
+        <div class="stat c-prec"><div class="v" id="s_prec">,</div><div class="k">Precision (living)</div></div>
+        <div class="stat c-live"><div class="v" id="s_living">,</div><div class="k">Published living</div></div>
+        <div class="stat c-tp"><div class="v" id="s_tp">,</div><div class="k">True positives</div></div>
+        <div class="stat c-root"><div class="v" id="s_roots">,</div><div class="k">Root strands</div></div>
+      </div>
+
+      <div class="plots">
+        <div class="canvas-wrap">
+          <h3>Precision timeline</h3>
+          <canvas id="timeline" height="430"></canvas>
+          <div class="legend">
+            <span><i class="dot" style="background:var(--good)"></i> precision per generation</span>
+            <span><i class="dot" style="background:var(--amber)"></i> sweep: precision vs r</span>
+          </div>
+        </div>
+
+        <div class="canvas-wrap">
+          <h3>Forest of Knowledge</h3>
+          <canvas id="tree" height="430"></canvas>
+          <div class="legend">
+            <span><i class="dot" style="background:var(--good)"></i> true positive</span>
+            <span><i class="dot" style="background:var(--bad)"></i> false positive</span>
+            <span><i class="dot" style="background:var(--pruned)"></i> pruned (refuted)</span>
+            <span><i class="ring"></i> root strand</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============================== ABOUT VIEW =============================== -->
+<section class="view about" id="view-about">
+  <h2>What this model does</h2>
+  <p>
+    Scientific knowledge is represented as a growing <strong>forest of findings</strong>.
+    Every generation, the field performs exactly one act. With probability <code>r</code> it
+    <strong>replicates</strong> an existing finding; otherwise (<code>1 - r</code>) it pursues
+    <strong>novelty</strong>. Novelty either founds a brand-new independent paradigm strand
+    (probability <code>p_new_root</code>) or <strong>extends</strong> an existing finding.
+    The headline outcome is the <strong>precision</strong> of the surviving literature:
+    the fraction of published, un-pruned findings that are actually true.
+  </p>
+  <p>
+    This operationalises March's <span class="pill">exploration vs. exploitation</span>
+    and Kuhn's <span class="pill">paradigm pluralism</span> as a tunable stochastic process.
+  </p>
+
+  <h2>Parameters</h2>
+  <table>
+    <tr><th>Symbol</th><th>Range</th><th>Meaning</th></tr>
+    <tr><td><code>r</code></td><td>0 to 1</td><td>Probability the next act is a replication rather than novelty.</td></tr>
+    <tr><td><code>p_next</code></td><td>0 to 1</td><td>Probability a newly proposed claim (root, or extension of a true base) is actually true.</td></tr>
+    <tr><td><code>alpha</code></td><td>0 to 1</td><td>Sensitivity: P(test positive given claim true).</td></tr>
+    <tr><td><code>beta</code></td><td>0 to 1</td><td>False-positive rate: P(test positive given claim false).</td></tr>
+    <tr><td><code>f</code></td><td>0 to 1</td><td>File-drawer rate: probability a failed replication is suppressed.</td></tr>
+    <tr><td><code>p_new_root</code></td><td>0 to 1</td><td>Given a novelty act, probability of founding a new independent root instead of extending.</td></tr>
+  </table>
+
+  <h2>The "Sweep r" button</h2>
+  <p>
+    A single run tells you the precision at <em>one</em> replication rate. <strong>Sweep r</strong>
+    answers the model's central question directly: it freezes every other parameter and re-runs
+    the simulation for <code>r = 0, 0.05, ..., 1.0</code>, averaging several seeds at each step to
+    reduce noise. The resulting orange curve in the timeline panel is <em>precision as a function
+    of r</em>. The peak is marked <code>r*</code>, the precision-optimal replication rate, and the
+    <code>r</code> slider snaps to it so you can inspect that run.
+  </p>
+
+  <h2>Mechanics, step by step</h2>
+  <ol>
+    <li><strong>Draw act.</strong> With probability <code>r</code> replicate; else pursue novelty. (If no living nodes exist yet, force novelty.)</li>
+    <li><strong>Novelty to root or extension.</strong> With probability <code>p_new_root</code> spawn a new root (<code>parentId = null</code>); its truth is drawn via <code>p_next</code>. Otherwise pick a parent among living nodes via the <em>Extension Anchoring Mode</em>.</li>
+    <li><strong>Inheritance.</strong> If the chosen base is false, the extension is necessarily false. If the base is true, the extension is true with probability <code>p_next</code>. (Doyen's point: extensions are worthless if the base is false.)</li>
+    <li><strong>Testing and publication.</strong> A claim is published only if its test reads positive: probability <code>alpha</code> if true, <code>beta</code> if false.</li>
+    <li><strong>Replication and pruning.</strong> A replication re-tests a living node chosen by the <em>Replication Depth Mode</em>. A failed (negative) re-test is suppressed with probability <code>f</code>; otherwise it is published and the refuted node plus <em>all its descendants</em> are recursively pruned, a retraction cascade. Pruned nodes stay visible in the tree, drawn in grey.</li>
+  </ol>
+
+  <h2>Reading the phylogeny</h2>
+  <p>
+    Each dot is a finding; edges link a finding to the parent it extends. Roots (new paradigms)
+    are scattered across the canvas, ringed, and each lineage grows outward in its own random
+    direction, so independent paradigms occupy their own regions. Colour encodes fate:
+    <span class="pill" style="color:var(--good)">green</span> true positive,
+    <span class="pill" style="color:var(--bad)">red</span> false positive, and
+    <span class="pill" style="color:var(--pruned)">grey</span> pruned (refuted by a published
+    replication, along with everything that depended on it).
+  </p>
+
+  <h2>Modes</h2>
+  <table>
+    <tr><th>Extension Anchoring</th><th>Behaviour</th></tr>
+    <tr><td><code>random</code></td><td>Any living node, uniformly.</td></tr>
+    <tr><td><code>frontier</code></td><td>Biased toward the most recent nodes, normal science at the edge.</td></tr>
+    <tr><td><code>conservative</code></td><td>Biased toward old, shallow nodes, building on established foundations.</td></tr>
+  </table>
+  <table>
+    <tr><th>Replication Depth</th><th>Behaviour</th></tr>
+    <tr><td><code>last</code></td><td>Re-tests the most recently published living node (frontier).</td></tr>
+    <tr><td><code>first</code></td><td>Re-tests the earliest published living node (foundations).</td></tr>
+    <tr><td><code>random</code></td><td>Re-tests any living node, chosen uniformly.</td></tr>
+  </table>
+
+  <h2>Why an interior optimum?</h2>
+  <p>
+    At <code>r = 0</code> nothing is ever checked, so false positives accumulate and precision
+    collapses. At <code>r = 1</code> the field only re-checks and never grows, starving the
+    literature. Somewhere in between, replication prunes enough false strands to keep precision
+    high while still permitting growth, the <strong>optimal replication rate</strong>.
+  </p>
+</section>
+
+<script>
+/* ============================ Seeded RNG ============================ */
+function mulberry32(a){
+  return function(){
+    a |= 0; a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+function hash01(n){
+  let t = (n + 0x9E3779B9) | 0;
+  t = Math.imul(t ^ (t >>> 15), 1 | t);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+}
+
+/* ====================== Simulation engine ====================== */
+function simulate(p){
+  const rng = mulberry32(p.seed >>> 0);
+  const rand = () => rng();
+
+  const parent = [], truth = [], alive = [], born = [], depthA = [];
+  const timeline = [];
+
+  const testPositive = isTrue => rand() < (isTrue ? p.alpha : p.beta);
+
+  function prune(idx){
+    const stack = [idx];
+    while(stack.length){
+      const cur = stack.pop();
+      if(!alive[cur]) continue;
+      alive[cur] = false;
+      for(let k=0;k<parent.length;k++) if(parent[k]===cur && alive[k]) stack.push(k);
+    }
+  }
+  function addNode(par, isTrue, gen){
+    parent.push(par); truth.push(isTrue); alive.push(true);
+    born.push(gen); depthA.push(par < 0 ? 0 : depthA[par] + 1);
+  }
+  function livingIndices(){
+    const out = [];
+    for(let i=0;i<alive.length;i++) if(alive[i]) out.push(i);
+    return out;
+  }
+  function pickAnchor(living){
+    const n = living.length, ord = living.map(i => born[i]);
+    const mn = Math.min(...ord), mx = Math.max(...ord);
+    const w = new Array(n);
+    for(let i=0;i<n;i++){
+      if(p.anchor === 'random')        w[i] = 1;
+      else if(p.anchor === 'frontier') w[i] = Math.pow(ord[i]-mn+1, 2);
+      else                             w[i] = Math.pow(mx-ord[i]+1, 2);
+    }
+    let sum=0; for(const x of w) sum+=x;
+    let t = rand()*sum;
+    for(let i=0;i<n;i++){ t-=w[i]; if(t<=0) return living[i]; }
+    return living[n-1];
+  }
+  function precisionNow(){
+    const live = livingIndices();
+    if(live.length===0) return null;
+    let tp=0; for(const i of live) if(truth[i]) tp++;
+    return tp/live.length;
+  }
+
+  for(let g=0; g<p.gens; g++){
+    const living = livingIndices();
+    const doRep = living.length>0 && rand() < p.r;
+
+    if(doRep){
+      let target;
+      if(p.depth === 'random'){
+        target = living[Math.floor(rand()*living.length)];
+      } else if(p.depth === 'first'){
+        target = living[0];
+        for(const i of living) if(born[i] < born[target]) target = i;
+      } else {
+        target = living[0];
+        for(const i of living) if(born[i] > born[target]) target = i;
+      }
+      const passed = testPositive(truth[target]);
+      if(!passed && rand() >= p.f) prune(target);
+    } else {
+      const isRoot = living.length===0 || rand() < p.pnr;
+      if(isRoot){
+        const isTrue = rand() < p.pnext;
+        if(testPositive(isTrue)) addNode(-1, isTrue, g);
+      } else {
+        const anchor = pickAnchor(living);
+        const isTrue = truth[anchor] ? (rand() < p.pnext) : false;
+        if(testPositive(isTrue)) addNode(anchor, isTrue, g);
+      }
+    }
+    const pr = precisionNow();
+    if(pr !== null) timeline.push(pr);
+  }
+
+  const live = livingIndices();
+  let tp=0; for(const i of live) if(truth[i]) tp++;
+  const roots = parent.filter((par,i)=> par<0 && alive[i]).length;
+
+  return {
+    seedUsed: p.seed >>> 0,
+    nodes: parent.map((par,i)=>({id:i, parentId: par<0?null:par, trueStatus:truth[i], alive:alive[i], born:born[i], depth:depthA[i]})),
+    precision: live.length ? tp/live.length : 0,
+    living: live.length, tp, roots, timeline, gens: p.gens,
+    maxBorn: born.length ? Math.max(...born) : 1
+  };
+}
+
+/* ====================== Theme ====================== */
+const $ = id => document.getElementById(id);
+function cssVar(name){ return getComputedStyle(document.body).getPropertyValue(name).trim(); }
+function theme(){
+  return {
+    canvas:cssVar('--canvas'), grid:cssVar('--grid'), muted:cssVar('--muted'), txt:cssVar('--txt'),
+    good:cssVar('--good'), bad:cssVar('--bad'), pruned:cssVar('--pruned'),
+    root:cssVar('--root'), amber:cssVar('--amber')
+  };
+}
+const ICON_MOON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>';
+const ICON_SUN  = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>';
+function setToggleIcon(){
+  const dark = document.body.classList.contains('dark');
+  $('themeBtn').innerHTML = dark ? ICON_SUN : ICON_MOON;  // show what you switch TO
+}
+$('themeBtn').addEventListener('click', ()=>{
+  document.body.classList.toggle('dark');
+  setToggleIcon();
+  draw(1);
+});
+
+/* ====================== State ====================== */
+let lastResult = null, lastSweep = null, treeLayout = null;
+
+const sliders = [['r','v_r'],['pnext','v_pnext'],['alpha','v_alpha'],['beta','v_beta'],['f','v_f'],['pnr','v_pnr']];
+sliders.forEach(([id,vid])=> $(id).addEventListener('input', ()=> $(vid).textContent=(+$(id).value).toFixed(2)));
+
+function readParams(){
+  let seed = (+$('seed').value)|0;
+  if(seed === 0) seed = (Math.floor(Math.random()*2147483646)+1);
+  return {
+    r:+$('r').value, pnext:+$('pnext').value, alpha:+$('alpha').value,
+    beta:+$('beta').value, f:+$('f').value, pnr:+$('pnr').value,
+    gens:Math.max(10, Math.min(20000, +$('gens').value|0)),
+    seed, depth:$('depth').value, anchor:$('anchor').value
+  };
+}
+
+document.querySelectorAll('.tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.view').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    $('view-'+t.dataset.tab).classList.add('active');
+    if(t.dataset.tab==='sim' && lastResult) draw(1);
+  });
+});
+
+/* ====================== Canvas helpers ====================== */
+function fitCanvas(cv){
+  const dpr = window.devicePixelRatio || 1;
+  const cssW = cv.clientWidth, cssH = cv.clientHeight || +cv.getAttribute('height');
+  cv.width = cssW*dpr; cv.height = cssH*dpr;
+  const ctx = cv.getContext('2d');
+  ctx.setTransform(dpr,0,0,dpr,0,0);
+  return {ctx, w:cssW, h:cssH};
+}
+
+function drawTimeline(progress){
+  const T = theme();
+  const cv = $('timeline');
+  const {ctx,w,h} = fitCanvas(cv);
+  ctx.clearRect(0,0,w,h);
+  const pad={l:44,r:16,t:14,b:42};
+  const ix=pad.l, iy=pad.t, iw=w-pad.l-pad.r, ih=h-pad.t-pad.b;
+
+  // y gridlines + precision labels
+  ctx.strokeStyle=T.grid; ctx.fillStyle=T.muted; ctx.font='11px sans-serif'; ctx.lineWidth=1; ctx.textAlign='left';
+  for(let k=0;k<=4;k++){
+    const yy=iy+ih*(k/4);
+    ctx.beginPath(); ctx.moveTo(ix,yy); ctx.lineTo(ix+iw,yy); ctx.stroke();
+    ctx.fillText((1-k/4).toFixed(2), 8, yy+4);
+  }
+
+  const sweepMode = !!lastSweep;
+
+  // sweep curve (precision vs r)
+  if(sweepMode){
+    const cut=Math.max(1, Math.floor(lastSweep.length*progress));
+    ctx.strokeStyle=T.amber; ctx.lineWidth=2; ctx.beginPath();
+    for(let i=0;i<cut;i++){
+      const pt=lastSweep[i];
+      const x=ix+iw*pt.r, y=iy+ih*(1-pt.precision);
+      i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+    }
+    ctx.stroke();
+    if(progress>=1){
+      const best=lastSweep.reduce((a,b)=>b.precision>a.precision?b:a,lastSweep[0]);
+      const bx=ix+iw*best.r, by=iy+ih*(1-best.precision);
+      ctx.fillStyle=T.amber; ctx.beginPath(); ctx.arc(bx,by,4,0,7); ctx.fill();
+      ctx.textAlign='center'; ctx.fillText('r*='+best.r.toFixed(2), bx, by-9); ctx.textAlign='left';
+    }
+  }
+
+  // per-generation precision
+  if(lastResult && lastResult.timeline.length){
+    const tl=lastResult.timeline;
+    const cut=Math.max(1, Math.floor(tl.length*progress));
+    ctx.strokeStyle=T.good; ctx.lineWidth=2; ctx.beginPath();
+    for(let i=0;i<cut;i++){
+      const x=ix+iw*(i/(tl.length-1||1)), y=iy+ih*(1-tl[i]);
+      i?ctx.lineTo(x,y):ctx.moveTo(x,y);
+    }
+    ctx.stroke();
+  }
+
+  // dynamic x-axis: ticks + label, depending on mode
+  const gens = lastResult ? lastResult.gens : 0;
+  const ticks = sweepMode
+    ? [{f:0,t:'0'},{f:.25,t:'0.25'},{f:.5,t:'0.5'},{f:.75,t:'0.75'},{f:1,t:'1.0'}]
+    : [{f:0,t:'0'},{f:.25,t:String(Math.round(gens*.25))},{f:.5,t:String(Math.round(gens*.5))},
+       {f:.75,t:String(Math.round(gens*.75))},{f:1,t:String(gens)}];
+  ctx.fillStyle=T.muted; ctx.strokeStyle=T.grid; ctx.textAlign='center';
+  ticks.forEach(tk=>{
+    const x=ix+iw*tk.f;
+    ctx.beginPath(); ctx.moveTo(x,iy+ih); ctx.lineTo(x,iy+ih+4); ctx.stroke();
+    ctx.fillText(tk.t, x, iy+ih+16);
+  });
+  ctx.font='11px sans-serif'; ctx.fillStyle=T.muted;
+  ctx.fillText(sweepMode ? 'replication rate  r' : 'generation  (0 to '+gens+')', ix+iw/2, h-6);
+  ctx.textAlign='left';
+}
+
+/* ---- Organic forest layout over ALL nodes (alive + pruned) ---- */
+function computeTreeLayout(){
+  treeLayout = null;
+  if(!lastResult) return;
+  const nodes = lastResult.nodes;
+  if(nodes.length===0) return;
+
+  const childrenOf = new Map();
+  nodes.forEach(n=>{
+    if(n.parentId!==null){
+      if(!childrenOf.has(n.parentId)) childrenOf.set(n.parentId,[]);
+      childrenOf.get(n.parentId).push(n.id);
+    }
+  });
+  const nodeById = new Map(nodes.map(n=>[n.id,n]));
+  const roots = nodes.filter(n=>n.parentId===null).map(n=>n.id);
+
+  const leaves = new Map();
+  function countLeaves(id){
+    const kids=childrenOf.get(id)||[];
+    if(!kids.length){ leaves.set(id,1); return 1; }
+    let s=0; for(const k of kids) s+=countLeaves(k);
+    leaves.set(id,s); return s;
+  }
+  let totalLeaves=0; roots.forEach(r=>totalLeaves+=countLeaves(r));
+  totalLeaves=totalLeaves||1;
+
+  const L0=90, DECAY=0.78, UP=-Math.PI/2;
+
+  function grow(id, x, y, dir, len){
+    const n=nodeById.get(id);
+    n._x=x; n._y=y;
+    const kids=childrenOf.get(id)||[];
+    const k=kids.length;
+    if(!k) return;
+    const fan=Math.min(Math.PI*0.95, 0.55 + 0.42*k);
+    const myLeaves=leaves.get(id)||1;
+    let acc=0;
+    for(let i=0;i<k;i++){
+      const kid=kids[i];
+      const frac=leaves.get(kid)/myLeaves;
+      const center=-fan/2 + (acc + frac/2)*fan; acc+=frac;
+      const jitter=(hash01(kid*2654435761)-0.5)*0.5;
+      const childDir=dir + center + jitter;
+      const childLen=len*DECAY*(0.82 + 0.42*hash01(kid*40503));
+      grow(kid, x+Math.cos(childDir)*childLen, y+Math.sin(childDir)*childLen, childDir, childLen);
+    }
+  }
+
+  // scatter roots at random (seeded) positions; each tree grows in a random direction
+  const rc=roots.length;
+  const spread = L0 * (2.2 + 1.6*Math.sqrt(rc));
+  roots.forEach(r=>{
+    const rx = (hash01(r*40503 + 1)-0.5)*spread;
+    const ry = (hash01(r*73856093 + 7)-0.5)*spread;
+    const rootDir = hash01(r*2654435761 + 13)*Math.PI*2;   // any direction
+    grow(r, rx, ry, rootDir, L0);
+  });
+
+  let minX=1e9,maxX=-1e9,minY=1e9,maxY=-1e9;
+  nodes.forEach(n=>{ minX=Math.min(minX,n._x); maxX=Math.max(maxX,n._x); minY=Math.min(minY,n._y); maxY=Math.max(maxY,n._y); });
+
+  treeLayout={ nodes, nodeById, minX, maxX, minY, maxY, maxBorn:Math.max(1,lastResult.maxBorn) };
+}
+
+function drawTree(progress){
+  const T = theme();
+  const cv = $('tree');
+  const {ctx,w,h} = fitCanvas(cv);
+  ctx.clearRect(0,0,w,h);
+  if(!treeLayout){
+    if(lastResult){ ctx.fillStyle=T.muted; ctx.font='14px sans-serif';
+      ctx.fillText('No findings were published in this run.', 20, h/2); }
+    return;
+  }
+  const {nodes, nodeById, minX, maxX, minY, maxY, maxBorn} = treeLayout;
+  const pad=28;
+  const bw=Math.max(1,maxX-minX), bh=Math.max(1,maxY-minY);
+  const scale=Math.min((w-2*pad)/bw, (h-2*pad)/bh);
+  const offX=(w-bw*scale)/2 - minX*scale;
+  const offY=(h-bh*scale)/2 - minY*scale;
+  const SX=x=>offX+x*scale, SY=y=>offY+y*scale;
+
+  const grow=0.28;
+  const reveal=n=>{ const a=(n.born/maxBorn)*(1-grow); return Math.max(0,Math.min(1,(progress-a)/grow)); };
+  const colNode=n=> n.alive ? (n.trueStatus?T.good:T.bad) : T.pruned;
+  const colEdgeRGBA=(n,al)=>{
+    const c = n.alive ? (n.trueStatus?T.good:T.bad) : T.pruned;
+    return c; // solid; alpha handled via globalAlpha
+  };
+
+  // edges grow from parent toward child
+  nodes.forEach(n=>{
+    if(n.parentId===null) return;
+    const par=nodeById.get(n.parentId); if(!par) return;
+    const rv=reveal(n); if(rv<=0) return;
+    const px=SX(par._x), py=SY(par._y), ex=SX(n._x), ey=SY(n._y);
+    const cx=px+(ex-px)*rv, cy=py+(ey-py)*rv;
+    ctx.globalAlpha = n.alive ? 0.7 : 0.4;
+    ctx.strokeStyle = colNode(n);
+    ctx.lineWidth = Math.max(0.6, 3 - n.depth*0.26);
+    ctx.lineCap='round';
+    ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(cx,cy); ctx.stroke();
+  });
+  ctx.globalAlpha=1;
+
+  // nodes
+  nodes.forEach(n=>{
+    const rv=reveal(n); if(rv<=0) return;
+    const isRoot=n.parentId===null;
+    const x=SX(n._x), y=SY(n._y);
+    ctx.globalAlpha = n.alive ? 1 : 0.65;
+    ctx.fillStyle = colNode(n);
+    const rad=(isRoot?5:3.2)*Math.min(1,rv*1.3);
+    ctx.beginPath(); ctx.arc(x,y,rad,0,7); ctx.fill();
+    if(isRoot && rv>=1){ ctx.globalAlpha=1; ctx.strokeStyle=T.root; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(x,y,rad+2.5,0,7); ctx.stroke(); }
+  });
+  ctx.globalAlpha=1;
+}
+
+/* ====================== Animation ====================== */
+let animId=null, animStart=null;
+const ANIM_MS=900;
+function animateAll(){
+  cancelAnimationFrame(animId); animStart=null;
+  const step=ts=>{
+    if(animStart===null) animStart=ts;
+    const p=Math.min(1,(ts-animStart)/ANIM_MS);
+    drawTimeline(p); drawTree(p);
+    if(p<1) animId=requestAnimationFrame(step);
+  };
+  animId=requestAnimationFrame(step);
+}
+function draw(progress){ drawTimeline(progress); drawTree(progress); }
+
+/* ====================== Actions ====================== */
+function updateStats(res){
+  $('s_prec').textContent  = res.living? res.precision.toFixed(3) : '-';
+  $('s_living').textContent= res.living;
+  $('s_tp').textContent    = res.tp;
+  $('s_roots').textContent = res.roots;
+}
+
+$('run').addEventListener('click', ()=>{
+  lastResult = simulate(readParams());
+  lastSweep = null;
+  computeTreeLayout();
+  updateStats(lastResult);
+  animateAll();
+});
+
+$('sweep').addEventListener('click', ()=>{
+  const base = readParams();
+  const pts=[];
+  for(let rr=0; rr<=1.0001; rr+=0.05){
+    let acc=0,cnt=0;
+    for(let s=0;s<5;s++){
+      const res=simulate({...base, r:rr, seed:(base.seed + s*101) >>> 0});
+      if(res.living){ acc+=res.precision; cnt++; }
+    }
+    pts.push({r:+rr.toFixed(2), precision: cnt?acc/cnt:0});
+  }
+  lastSweep=pts;
+  lastResult=simulate(base);
+  computeTreeLayout();
+  updateStats(lastResult);
+  animateAll();
+  const best=pts.reduce((a,b)=>b.precision>a.precision?b:a,pts[0]);
+  $('r').value=best.r; $('v_r').textContent=best.r.toFixed(2);
+});
+
+$('export').addEventListener('click', ()=>{
+  if(!lastResult){ alert('Run a simulation first.'); return; }
+  const p = readParams();
+  const payload = {
+    meta:{ generated:new Date().toISOString(), app:'Evolution of Research, Optimal Replication Rate Simulator' },
+    parameters:{...p, seedUsed:lastResult.seedUsed},
+    summary:{ precision:lastResult.precision, livingNodes:lastResult.living,
+              truePositives:lastResult.tp, rootStrands:lastResult.roots },
+    sweep:lastSweep,
+    matrix:(()=>{ const n=lastResult.nodes.length; const m=Array.from({length:n},()=>new Array(n).fill(0));
+                  lastResult.nodes.forEach(nd=>{ if(nd.parentId!==null) m[nd.id][nd.parentId]=1; }); return m; })(),
+    nodes:lastResult.nodes,
+    precisionTimeline:lastResult.timeline
+  };
+  const blob=new Blob([JSON.stringify(payload,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='evolution-of-research_seed'+lastResult.seedUsed+'.json';
+  a.click(); URL.revokeObjectURL(a.href);
+});
+
+window.addEventListener('resize', ()=>{ if(lastResult) draw(1); });
+
+/* init */
+setToggleIcon();
+$('run').click();
+</script>
+</body>
+</html>
