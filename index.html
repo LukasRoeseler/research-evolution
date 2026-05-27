@@ -12,7 +12,7 @@
     --txt:#1f2328; --muted:#5b636b; --accent:#1a3a6e; --accent-soft:#e5ecf8;
     --good:#1a7f37; --bad:#b42318; --pruned:#9aa0a6; --root:#8250df; --amber:#b8860b;
     --canvas:#ffffff; --grid:#e6e9ee; --header:#2b2b2b; --header-txt:#f4f5f7;
-    --shadow:rgba(140,149,159,.18); --tech:#0f6f8a;
+    --shadow:rgba(140,149,159,.18); --tech:#0f6f8a; --rep-ring:#1d6fb8;
     --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
   }
   /* ---------- Dark theme ---------- */
@@ -21,7 +21,7 @@
     --txt:#e6edf3; --muted:#9aa4af; --accent:#d96a92; --accent-soft:#2a1822;
     --good:#3fb950; --bad:#f85149; --pruned:#6e7681; --root:#bc8cff; --amber:#d29922;
     --canvas:#0a0e14; --grid:#2a3038; --header:#15181d; --header-txt:#e6edf3;
-    --shadow:rgba(0,0,0,.45); --tech:#39b6d8; --accent:#5b8fd6; --accent-soft:#0c1e38;
+    --shadow:rgba(0,0,0,.45); --tech:#39b6d8; --accent:#5b8fd6; --accent-soft:#0c1e38; --rep-ring:#60a5fa;
   }
   *{box-sizing:border-box}
   body{
@@ -130,6 +130,8 @@
   .canvas-wrap{position:relative; background:var(--panel); border:1px solid var(--border);
                border-radius:10px; padding:14px; margin-bottom:18px; box-shadow:0 1px 4px var(--shadow)}
   canvas{width:100%; display:block; border-radius:7px; background:var(--canvas); border:1px solid var(--border)}
+  #tree{cursor:grab}
+  #tree.dragging{cursor:grabbing}
   .legend{display:flex; gap:18px; flex-wrap:wrap; margin:10px 4px 2px; font-size:12px; color:var(--muted)}
   .legend span{display:inline-flex; align-items:center; gap:7px}
   .dot{width:11px; height:11px; border-radius:50%; display:inline-block}
@@ -289,6 +291,7 @@
             <span><i class="dot" style="background:var(--bad)"></i> false positive</span>
             <span><i class="dot" style="background:var(--pruned)"></i> pruned (refuted)</span>
             <span><i class="ring"></i> root strand</span>
+            <span><i class="ring" style="border-color:var(--rep-ring)"></i> replicated</span>
           </div>
         </div>
       </div>
@@ -297,6 +300,15 @@
         <p class="plot-desc">For each replication rate from 0 (pure exploration) to 1 (pure replication), 100 independent simulations are run and their final precision is averaged. Error bars show one standard deviation. The bar at the optimal rate r* (highest mean precision) is labelled. Colours grade from teal (low replication) through blue to violet (high replication).</p>
         <div class="canvas-wrap">
           <canvas id="sweep-timeline"></canvas>
+          <div class="legend">
+            <span><i class="dot" style="background:hsl(190,70%,48%)"></i> low replication rate</span>
+            <span><i class="dot" style="background:hsl(237,70%,48%)"></i> mid</span>
+            <span><i class="dot" style="background:hsl(285,70%,48%)"></i> high replication rate</span>
+          </div>
+        </div>
+        <p class="plot-desc" style="margin-top:14px">Valid findings: mean count of true positives still in the literature (published and not yet retracted) across 100 simulations per replication rate. The bar at the rate maximising valid findings is labelled r*. Note that the precision-maximising rate and the valid-findings-maximising rate can differ.</p>
+        <div class="canvas-wrap">
+          <canvas id="sweep-tp"></canvas>
           <div class="legend">
             <span><i class="dot" style="background:hsl(190,70%,48%)"></i> low replication rate</span>
             <span><i class="dot" style="background:hsl(237,70%,48%)"></i> mid</span>
@@ -410,7 +422,7 @@ function simulate(p){
   const rng = mulberry32(p.seed >>> 0);
   const rand = () => rng();
 
-  const parent = [], truth = [], alive = [], born = [], depthA = [];
+  const parent = [], truth = [], alive = [], born = [], depthA = [], replicated = [];
   const timeline = [];
 
   const testPositive = isTrue => rand() < (isTrue ? p.alpha : p.beta);
@@ -427,6 +439,7 @@ function simulate(p){
   function addNode(par, isTrue, gen){
     parent.push(par); truth.push(isTrue); alive.push(true);
     born.push(gen); depthA.push(par < 0 ? 0 : depthA[par] + 1);
+    replicated.push(false);
   }
   function livingIndices(){
     const out = [];
@@ -469,6 +482,7 @@ function simulate(p){
         target = living[0];
         for(const i of living) if(born[i] > born[target]) target = i;
       }
+      replicated[target] = true;
       const passed = testPositive(truth[target]);
       if(!passed && rand() >= p.f) prune(target);
     } else {
@@ -492,7 +506,7 @@ function simulate(p){
 
   return {
     seedUsed: p.seed >>> 0,
-    nodes: parent.map((par,i)=>({id:i, parentId: par<0?null:par, trueStatus:truth[i], alive:alive[i], born:born[i], depth:depthA[i]})),
+    nodes: parent.map((par,i)=>({id:i, parentId: par<0?null:par, trueStatus:truth[i], alive:alive[i], born:born[i], depth:depthA[i], replicated:replicated[i]})),
     precision: live.length ? tp/live.length : 0,
     living: live.length, tp, roots, timeline, gens: p.gens,
     maxBorn: born.length ? Math.max(...born) : 1
@@ -506,7 +520,7 @@ function theme(){
   return {
     canvas:cssVar('--canvas'), grid:cssVar('--grid'), muted:cssVar('--muted'), txt:cssVar('--txt'),
     good:cssVar('--good'), bad:cssVar('--bad'), pruned:cssVar('--pruned'),
-    root:cssVar('--root'), amber:cssVar('--amber')
+    root:cssVar('--root'), amber:cssVar('--amber'), repRing:cssVar('--rep-ring')
   };
 }
 const ICON_MOON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>';
@@ -523,6 +537,7 @@ $('themeBtn').addEventListener('click', ()=>{
 
 /* ====================== State ====================== */
 let lastResult = null, lastSweep = null, treeLayout = null;
+let treeZoom = 1, treePanX = 0, treePanY = 0, treeDragging = false, treeDragLast = null;
 
 const sliders = [['r','v_r'],['pnext','v_pnext'],['alpha','v_alpha'],['beta','v_beta'],['f','v_f'],['pnr','v_pnr']];
 sliders.forEach(([id,vid])=> $(id).addEventListener('input', ()=> $(vid).textContent=(+$(id).value).toFixed(2)));
@@ -694,6 +709,10 @@ function drawTree(progress){
   const offY=(h-bh*scale)/2 - minY*scale;
   const SX=x=>offX+x*scale, SY=y=>offY+y*scale;
 
+  ctx.save();
+  ctx.translate(treePanX, treePanY);
+  ctx.scale(treeZoom, treeZoom);
+
   const grow=0.28;
   const reveal=n=>{ const a=(n.born/maxBorn)*(1-grow); return Math.max(0,Math.min(1,(progress-a)/grow)); };
   const colNode=n=> n.alive ? (n.trueStatus?T.good:T.bad) : T.pruned;
@@ -727,8 +746,15 @@ function drawTree(progress){
     const rad=(isRoot?5:3.2)*Math.min(1,rv*1.3);
     ctx.beginPath(); ctx.arc(x,y,rad,0,7); ctx.fill();
     if(isRoot && rv>=1){ ctx.globalAlpha=1; ctx.strokeStyle=T.root; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(x,y,rad+2.5,0,7); ctx.stroke(); }
+    if(n.replicated && rv>=1){
+      ctx.globalAlpha = n.alive ? 0.9 : 0.55;
+      ctx.strokeStyle = T.repRing;
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(x, y, rad + (isRoot ? 6.5 : 4.5), 0, Math.PI*2); ctx.stroke();
+    }
   });
   ctx.globalAlpha=1;
+  ctx.restore();
 }
 
 /* ---- Optimal replication rate bar chart (100 sims per r value) ---- */
@@ -740,18 +766,27 @@ function drawSweepChart(progress){
   if(!fc) return;
   const {ctx,w,h}=fc;
   ctx.clearRect(0,0,w,h);
-  const pad={l:50,r:24,t:24,b:48};
+  const pad={l:62,r:24,t:24,b:48};
   const ix=pad.l, iy=pad.t, iw=w-pad.l-pad.r, ih=h-pad.t-pad.b;
   const dark=document.body.classList.contains('dark');
 
   // y gridlines + labels
   ctx.strokeStyle=T.grid; ctx.fillStyle=T.muted; ctx.font='11px sans-serif';
-  ctx.lineWidth=1; ctx.textAlign='left';
+  ctx.lineWidth=1; ctx.textAlign='right';
   for(let k=0;k<=4;k++){
     const yy=iy+ih*(k/4);
     ctx.beginPath(); ctx.moveTo(ix,yy); ctx.lineTo(ix+iw,yy); ctx.stroke();
-    ctx.fillText((1-k/4).toFixed(2), 6, yy+4);
+    ctx.fillText((1-k/4).toFixed(2), ix-6, yy+4);
   }
+  // rotated y-axis label
+  ctx.save();
+  ctx.translate(13, iy+ih/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center';
+  ctx.font='11px sans-serif';
+  ctx.fillStyle=T.muted;
+  ctx.fillText('True discovery rate', 0, 0);
+  ctx.restore();
   // x baseline
   ctx.beginPath(); ctx.moveTo(ix,iy+ih); ctx.lineTo(ix+iw,iy+ih); ctx.stroke();
 
@@ -824,6 +859,105 @@ function drawSweepChart(progress){
   ctx.textAlign='left';
 }
 
+/* ---- Valid findings bar chart (same sweep, target = tp count) ---- */
+function drawSweepChartTP(progress){
+  const cv=$('sweep-tp');
+  if(!cv || !lastSweep) return;
+  const T=theme();
+  const fc=fitCanvas(cv);
+  if(!fc) return;
+  const {ctx,w,h}=fc;
+  ctx.clearRect(0,0,w,h);
+  const pad={l:62,r:24,t:24,b:48};
+  const ix=pad.l, iy=pad.t, iw=w-pad.l-pad.r, ih=h-pad.t-pad.b;
+  const dark=document.body.classList.contains('dark');
+
+  const yMax=Math.max(1, ...lastSweep.map(pt=>pt.meanTp + pt.sdTp));
+  const yTicks=4;
+
+  // y gridlines + labels
+  ctx.strokeStyle=T.grid; ctx.fillStyle=T.muted; ctx.font='11px sans-serif';
+  ctx.lineWidth=1; ctx.textAlign='right';
+  for(let k=0;k<=yTicks;k++){
+    const yy=iy+ih*(k/yTicks);
+    ctx.beginPath(); ctx.moveTo(ix,yy); ctx.lineTo(ix+iw,yy); ctx.stroke();
+    ctx.fillText(Math.round(yMax*(1-k/yTicks)), ix-6, yy+4);
+  }
+  // rotated y-axis label
+  ctx.save();
+  ctx.translate(13, iy+ih/2);
+  ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center';
+  ctx.font='11px sans-serif';
+  ctx.fillStyle=T.muted;
+  ctx.fillText('Valid findings', 0, 0);
+  ctx.restore();
+  // x baseline
+  ctx.beginPath(); ctx.moveTo(ix,iy+ih); ctx.lineTo(ix+iw,iy+ih); ctx.stroke();
+
+  const n=lastSweep.length;
+  const slotW=iw/n;
+  const barW=slotW*0.68;
+  const best=lastSweep.reduce((a,b)=>b.meanTp>a.meanTp?b:a,lastSweep[0]);
+
+  lastSweep.forEach((pt,i)=>{
+    const cx=ix+(i+0.5)*slotW;
+    const barH=ih*(pt.meanTp/yMax)*progress;
+    const barTop=iy+ih-barH;
+    const hue=190+pt.r*95;
+    const lit=dark?60:48;
+    const col=`hsl(${hue},70%,${lit}%)`;
+    const isOpt=pt.r===best.r;
+
+    ctx.globalAlpha=isOpt?1:0.72;
+    ctx.fillStyle=col;
+    ctx.fillRect(cx-barW/2, barTop, barW, barH);
+
+    if(isOpt){
+      ctx.globalAlpha=1;
+      ctx.strokeStyle=col;
+      ctx.lineWidth=2;
+      ctx.strokeRect(cx-barW/2-1, barTop-1, barW+2, barH+2);
+    }
+
+    if(progress>=1 && pt.sdTp>0){
+      const meanY=iy+ih*(1-pt.meanTp/yMax);
+      const sdPx=ih*(pt.sdTp/yMax);
+      ctx.globalAlpha=0.65;
+      ctx.strokeStyle=col;
+      ctx.lineWidth=1.5;
+      const capHalf=3;
+      const top=Math.max(iy, meanY-sdPx);
+      const bot=Math.min(iy+ih, meanY+sdPx);
+      ctx.beginPath(); ctx.moveTo(cx,top); ctx.lineTo(cx,bot); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx-capHalf,top); ctx.lineTo(cx+capHalf,top); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx-capHalf,bot); ctx.lineTo(cx+capHalf,bot); ctx.stroke();
+    }
+    ctx.globalAlpha=1;
+
+    if(isOpt && progress>=1){
+      const labelY=Math.max(iy+14, barTop-8);
+      ctx.fillStyle=`hsl(${hue},70%,${dark?55:38}%)`;
+      ctx.font='bold 11px sans-serif';
+      ctx.textAlign='center';
+      ctx.fillText('r*='+pt.r.toFixed(2), cx, labelY);
+    }
+  });
+  ctx.globalAlpha=1;
+
+  // x-axis ticks
+  ctx.fillStyle=T.muted; ctx.strokeStyle=T.grid; ctx.font='11px sans-serif'; ctx.textAlign='center';
+  lastSweep.forEach((pt,i)=>{
+    if(i%5===0 || i===lastSweep.length-1){
+      const cx=ix+(i+0.5)*slotW;
+      ctx.beginPath(); ctx.moveTo(cx,iy+ih); ctx.lineTo(cx,iy+ih+4); ctx.stroke();
+      ctx.fillText(pt.r.toFixed(2), cx, iy+ih+16);
+    }
+  });
+  ctx.fillText('replication rate  r', ix+iw/2, h-6);
+  ctx.textAlign='left';
+}
+
 /* ====================== Animation ====================== */
 let animId=null, animStart=null;
 const ANIM_MS=900;
@@ -832,12 +966,12 @@ function animateAll(){
   const step=ts=>{
     if(animStart===null) animStart=ts;
     const p=Math.min(1,(ts-animStart)/ANIM_MS);
-    drawTimeline(p); drawTree(p); drawSweepChart(p);
+    drawTimeline(p); drawTree(p); drawSweepChart(p); drawSweepChartTP(p);
     if(p<1) animId=requestAnimationFrame(step);
   };
   animId=requestAnimationFrame(step);
 }
-function draw(progress){ drawTimeline(progress); drawTree(progress); drawSweepChart(progress); }
+function draw(progress){ drawTimeline(progress); drawTree(progress); drawSweepChart(progress); drawSweepChartTP(progress); }
 
 /* ====================== Actions ====================== */
 function updateStats(res){
@@ -853,25 +987,71 @@ $('run').addEventListener('click', ()=>{
   // auto-sweep: 21 r values x 100 seeds each
   const pts=[];
   for(let rr=0; rr<=1.0001; rr+=0.05){
-    const precs=[];
+    const precs=[], tps=[];
     for(let s=0;s<100;s++){
       const res=simulate({...base, r:rr, seed:(base.seed + s*7919) >>> 0});
-      if(res.living) precs.push(res.precision);
+      if(res.living){ precs.push(res.precision); tps.push(res.tp); }
     }
     const mean = precs.length ? precs.reduce((a,b)=>a+b,0)/precs.length : 0;
     const sd = precs.length>1
       ? Math.sqrt(precs.reduce((a,b)=>a+(b-mean)**2,0)/(precs.length-1))
       : 0;
-    pts.push({r:+rr.toFixed(2), precision:mean, sd, n:precs.length});
+    const meanTp = tps.length ? tps.reduce((a,b)=>a+b,0)/tps.length : 0;
+    const sdTp = tps.length>1
+      ? Math.sqrt(tps.reduce((a,b)=>a+(b-meanTp)**2,0)/(tps.length-1))
+      : 0;
+    pts.push({r:+rr.toFixed(2), precision:mean, sd, n:precs.length, meanTp, sdTp});
   }
   lastSweep=pts;
   computeTreeLayout();
+  treeZoom=1; treePanX=0; treePanY=0;
   updateStats(lastResult);
   animateAll();
 });
 
 
 window.addEventListener('resize', ()=>{ if(lastResult) draw(1); });
+
+/* ---- Tree canvas: mouse-wheel zoom + drag pan ---- */
+(function(){
+  const cv = $('tree');
+
+  cv.addEventListener('wheel', e=>{
+    e.preventDefault();
+    const rect = cv.getBoundingClientRect();
+    const cx = e.clientX - rect.left;
+    const cy = e.clientY - rect.top;
+    const factor = e.deltaY < 0 ? 1.15 : (1/1.15);
+    const newZoom = Math.max(0.5, Math.min(20, treeZoom * factor));
+    const scale = newZoom / treeZoom;
+    treePanX = cx - scale * (cx - treePanX);
+    treePanY = cy - scale * (cy - treePanY);
+    treeZoom = newZoom;
+    if(lastResult) drawTree(1);
+  }, {passive: false});
+
+  cv.addEventListener('mousedown', e=>{
+    treeDragging = true;
+    treeDragLast = {x: e.clientX, y: e.clientY};
+    cv.classList.add('dragging');
+    e.preventDefault();
+  });
+
+  window.addEventListener('mousemove', e=>{
+    if(!treeDragging) return;
+    treePanX += e.clientX - treeDragLast.x;
+    treePanY += e.clientY - treeDragLast.y;
+    treeDragLast = {x: e.clientX, y: e.clientY};
+    if(lastResult) drawTree(1);
+  });
+
+  window.addEventListener('mouseup', ()=>{
+    if(!treeDragging) return;
+    treeDragging = false;
+    $('tree').classList.remove('dragging');
+    treeDragLast = null;
+  });
+})();
 
 /* Enter / R shortcut to re-run (ignored when focus is in a text/number input) */
 document.addEventListener('keydown', e=>{
