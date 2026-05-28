@@ -112,7 +112,27 @@
   .btns{display:flex; flex-wrap:wrap; gap:9px; margin-top:8px; align-items:center}
   button.act{background:var(--accent); color:#fff; border:none; border-radius:7px; padding:10px 15px; font-weight:700; cursor:pointer; font-size:13px; letter-spacing:.02em}
   button.sec{background:var(--panel2); color:var(--txt); border:1px solid var(--border); border-radius:7px; padding:10px 15px; font-weight:700; cursor:pointer; font-size:13px}
-  button.speed{min-width:90px; font-variant-numeric:tabular-nums}
+  .speed-toggle{
+    position:relative; display:inline-flex; align-items:center;
+    background:var(--panel2); border:1px solid var(--border); border-radius:8px; padding:3px;
+  }
+  .seg-track{
+    position:absolute; top:3px; border-radius:5px; background:var(--accent);
+    transition:left .2s cubic-bezier(.4,0,.2,1), width .2s cubic-bezier(.4,0,.2,1);
+    pointer-events:none; z-index:0;
+  }
+  .speed-toggle .seg{
+    position:relative; z-index:1; background:none; border:none; border-radius:5px;
+    padding:5px 11px; font-size:12px; font-weight:700; cursor:pointer;
+    color:var(--muted); transition:color .18s; font-variant-numeric:tabular-nums;
+    letter-spacing:.01em;
+  }
+  .speed-toggle .seg.active{color:#fff}
+  .speed-toggle .seg:hover:not(.active){color:var(--txt)}
+  .seg-unit{
+    font-size:11px; color:var(--muted); font-weight:600;
+    padding:0 8px 0 3px; position:relative; z-index:1; pointer-events:none;
+  }
   button.paused{background:var(--amber); color:#fff; border:none}
   button:hover{filter:brightness(1.05)}
   button:disabled{opacity:.5; cursor:not-allowed}
@@ -157,6 +177,20 @@
 
   .canvas-wrap{position:relative; background:var(--panel); border:1px solid var(--border);
                border-radius:10px; padding:14px; margin-bottom:18px; box-shadow:0 1px 4px var(--shadow)}
+  .canvas-wrap:fullscreen{border-radius:0; padding:10px; margin:0; overflow:auto; background:var(--bg)}
+  .canvas-wrap:-webkit-full-screen{border-radius:0; padding:10px; margin:0; overflow:auto; background:var(--bg)}
+  .fs-btn{
+    position:absolute; top:9px; right:9px; z-index:10;
+    width:26px; height:26px; border-radius:5px; padding:0;
+    background:var(--panel2); border:1px solid var(--border);
+    color:var(--muted); cursor:pointer; display:flex; align-items:center; justify-content:center;
+    opacity:0; transition:opacity .15s;
+  }
+  .canvas-wrap:hover .fs-btn{opacity:.75}
+  .fs-btn:hover{opacity:1 !important; background:var(--accent-soft); color:var(--accent)}
+  .canvas-wrap:fullscreen .fs-btn,.canvas-wrap:-webkit-full-screen .fs-btn{
+    opacity:.75; background:rgba(0,0,0,.35); border-color:rgba(255,255,255,.2); color:#fff;
+  }
   canvas{width:100%; display:block; border-radius:7px; background:var(--canvas); border:1px solid var(--border)}
   #tree{cursor:grab}
   #tree.dragging{cursor:grabbing}
@@ -164,6 +198,7 @@
   .legend span{display:inline-flex; align-items:center; gap:7px}
   .dot{width:11px; height:11px; border-radius:50%; display:inline-block}
   .ring{width:12px; height:12px; border-radius:50%; display:inline-block; border:2px solid var(--root); box-sizing:border-box}
+  .ring-dashed{border-style:dashed}
 
   .about{max-width:900px}
   .about h2{font-family:var(--serif); font-size:20px; color:var(--accent); margin-top:26px; border-bottom:1px solid var(--border); padding-bottom:7px}
@@ -283,7 +318,13 @@
       <div class="btns">
         <button class="act" id="startPause" title="Start or pause the live simulation">Start</button>
         <button class="sec" id="resetBtn" title="Reset the simulation to generation 0">Reset</button>
-        <button class="sec speed" id="speedBtn" title="Toggle simulation speed">10 gen/s</button>
+        <div class="speed-toggle" id="speedToggle" title="Simulation speed">
+          <div class="seg-track" id="segTrack"></div>
+          <button class="seg" data-speed="1">1</button>
+          <button class="seg" data-speed="10">10</button>
+          <button class="seg" data-speed="100">100</button>
+          <span class="seg-unit">gen/s</span>
+        </div>
       </div>
     </div>
 
@@ -331,7 +372,8 @@
             <span><i class="dot" style="background:var(--bad)"></i> false positive</span>
             <span><i class="dot" style="background:var(--pruned)"></i> pruned (refuted)</span>
             <span><i class="ring"></i> root strand</span>
-            <span><i class="ring" style="border-color:var(--rep-ring)"></i> replicated</span>
+            <span><i class="ring" style="border-color:var(--rep-ring)"></i> replicated (passed)</span>
+            <span><i class="ring ring-dashed" style="border-color:var(--rep-ring)"></i> replicated (filed away)</span>
           </div>
         </div>
       </div>
@@ -485,7 +527,7 @@ function simulate(p){
   const rng = mulberry32(p.seed >>> 0);
   const rand = () => rng();
 
-  const parent = [], truth = [], alive = [], born = [], depthA = [], replicated = [];
+  const parent = [], truth = [], alive = [], born = [], depthA = [], replicated = [], filedAway = [];
   const timeline = [];
 
   const testPositive = isTrue => rand() < (isTrue ? p.alpha : p.beta);
@@ -502,7 +544,7 @@ function simulate(p){
   function addNode(par, isTrue, gen){
     parent.push(par); truth.push(isTrue); alive.push(true);
     born.push(gen); depthA.push(par < 0 ? 0 : depthA[par] + 1);
-    replicated.push(false);
+    replicated.push(false); filedAway.push(false);
   }
   function livingIndices(){
     const out = [];
@@ -549,16 +591,15 @@ function simulate(p){
         }
         replicated[target] = true;
         const passed = testPositive(truth[target]);
-        if(!passed && rand() >= p.f) prune(target);
+        if(!passed){ if(rand() >= p.f) prune(target); else filedAway[target] = true; }
       }
     } else {
-      const repLiving = living.filter(i => replicated[i]);
-      const isRoot = living.length===0 || repLiving.length===0 || rand() < p.pnr;
+      const isRoot = living.length===0 || rand() < p.pnr;
       if(isRoot){
         const isTrue = rand() < p.pnext;
         if(testPositive(isTrue)) addNode(-1, isTrue, g);
       } else {
-        const anchor = pickAnchor(repLiving);
+        const anchor = pickAnchor(living);
         const isTrue = truth[anchor] ? (rand() < p.pnext) : false;
         if(testPositive(isTrue)) addNode(anchor, isTrue, g);
       }
@@ -574,7 +615,7 @@ function simulate(p){
 
   return {
     seedUsed: p.seed >>> 0,
-    nodes: parent.map((par,i)=>({id:i, parentId: par<0?null:par, trueStatus:truth[i], alive:alive[i], born:born[i], depth:depthA[i], replicated:replicated[i]})),
+    nodes: parent.map((par,i)=>({id:i, parentId: par<0?null:par, trueStatus:truth[i], alive:alive[i], born:born[i], depth:depthA[i], replicated:replicated[i], filedAway:filedAway[i]})),
     precision: live.length ? tp/live.length : 0,
     living: live.length, tp, roots, maxBranchDepth, timeline, gens: p.gens,
     maxBorn: born.length ? Math.max(...born) : 1
@@ -591,8 +632,10 @@ function theme(){
     root:cssVar('--root'), amber:cssVar('--amber'), repRing:cssVar('--rep-ring')
   };
 }
-const ICON_MOON = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>';
-const ICON_SUN  = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>';
+const ICON_MOON    = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>';
+const ICON_SUN     = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M19.1 4.9l-1.4 1.4M6.3 17.7l-1.4 1.4"/></svg>';
+const ICON_EXPAND  = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"/></svg>';
+const ICON_COLLAPSE= '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"/></svg>';
 function setToggleIcon(){
   const dark = document.body.classList.contains('dark');
   $('themeBtn').innerHTML = dark ? ICON_SUN : ICON_MOON;  // show what you switch TO
@@ -602,6 +645,29 @@ $('themeBtn').addEventListener('click', ()=>{
   setToggleIcon();
   draw(1);
 });
+
+/* ====================== Fullscreen buttons ====================== */
+function updateFsBtns(){
+  const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  document.querySelectorAll('.fs-btn').forEach(b => b.innerHTML = inFS ? ICON_COLLAPSE : ICON_EXPAND);
+}
+document.querySelectorAll('.canvas-wrap').forEach(wrap => {
+  const btn = document.createElement('button');
+  btn.className = 'fs-btn'; btn.title = 'Toggle full screen';
+  btn.innerHTML = ICON_EXPAND;
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    if(!inFS){
+      (wrap.requestFullscreen || wrap.webkitRequestFullscreen).call(wrap);
+    } else {
+      (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+    }
+  });
+  wrap.appendChild(btn);
+});
+document.addEventListener('fullscreenchange', ()=>{ updateFsBtns(); if(lastResult) draw(1); });
+document.addEventListener('webkitfullscreenchange', ()=>{ updateFsBtns(); if(lastResult) draw(1); });
 
 /* ====================== State ====================== */
 let lastResult = null, lastSweep = null, treeLayout = null;
@@ -637,8 +703,10 @@ function fitCanvas(cv){
   const dpr = window.devicePixelRatio || 1;
   const cssW = cv.clientWidth;
   if(cssW <= 0) return null;
-  const rect = cv.getBoundingClientRect();
-  const cssH = Math.max(240, Math.min(window.innerHeight - rect.top - 80, 700));
+  const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  const cssH = inFS
+    ? Math.max(400, window.innerHeight - 56)
+    : (() => { const rect = cv.getBoundingClientRect(); return Math.max(240, Math.min(window.innerHeight - rect.top - 80, 700)); })();
   cv.style.height = cssH + 'px';
   cv.width = Math.round(cssW * dpr);
   cv.height = Math.round(cssH * dpr);
@@ -819,7 +887,9 @@ function drawTree(progress){
       ctx.globalAlpha = n.alive ? 0.9 : 0.55;
       ctx.strokeStyle = T.repRing;
       ctx.lineWidth = 2;
+      if(n.filedAway) ctx.setLineDash([4, 3]);
       ctx.beginPath(); ctx.arc(x, y, rad + (isRoot ? 6.5 : 4.5), 0, Math.PI*2); ctx.stroke();
+      ctx.setLineDash([]);
     }
   });
   ctx.globalAlpha=1;
@@ -1171,7 +1241,7 @@ function liveInit(){
   const rng = mulberry32(seed >>> 0);
   liveState = {
     rng, rand: ()=>rng(),
-    parent:[], truth:[], alive:[], born:[], depthA:[], replicated:[],
+    parent:[], truth:[], alive:[], born:[], depthA:[], replicated:[], filedAway:[],
     timeline:[], gen:0,
     counters:{ innovations:0, extensions:0, replications:0 }
   };
@@ -1192,7 +1262,7 @@ function livePrune(s, idx){
 function liveAddNode(s, par, isTrue, gen){
   s.parent.push(par); s.truth.push(isTrue); s.alive.push(true);
   s.born.push(gen); s.depthA.push(par<0 ? 0 : s.depthA[par]+1);
-  s.replicated.push(false);
+  s.replicated.push(false); s.filedAway.push(false);
 }
 
 function liveLiving(s){
@@ -1239,16 +1309,15 @@ function liveStep(n){
         else { target=candidates[0]; for(const i of candidates) if(s.born[i]>s.born[target]) target=i; }
         s.replicated[target]=true; s.counters.replications++;
         const passed=testPos(s.truth[target]);
-        if(!passed && s.rand()>=f) livePrune(s,target);
+        if(!passed){ if(s.rand()>=f) livePrune(s,target); else s.filedAway[target]=true; }
       }
     } else {
-      const repLiving=living.filter(i=>s.replicated[i]);
-      const isRoot=living.length===0 || repLiving.length===0 || s.rand()<pnr;
+      const isRoot=living.length===0 || s.rand()<pnr;
       if(isRoot){
         const isTrue=s.rand()<pnext;
         if(testPos(isTrue)){ liveAddNode(s,-1,isTrue,s.gen); s.counters.innovations++; }
       } else {
-        const anch=livePickAnchor(s,repLiving,anchor);
+        const anch=livePickAnchor(s,living,anchor);
         const isTrue=s.truth[anch] ? (s.rand()<pnext) : false;
         if(testPos(isTrue)){ liveAddNode(s,anch,isTrue,s.gen); s.counters.extensions++; }
       }
@@ -1267,7 +1336,7 @@ function liveSnapshot(){
   const s=liveState, n=s.parent.length;
   const nodes=[];
   for(let i=0;i<n;i++) nodes.push({id:i, parentId:s.parent[i]<0?null:s.parent[i],
-    trueStatus:s.truth[i], alive:s.alive[i], born:s.born[i], depth:s.depthA[i], replicated:s.replicated[i]});
+    trueStatus:s.truth[i], alive:s.alive[i], born:s.born[i], depth:s.depthA[i], replicated:s.replicated[i], filedAway:s.filedAway[i]});
   const live=[]; for(let i=0;i<n;i++) if(s.alive[i]) live.push(i);
   let tp=0; for(const i of live) if(s.truth[i]) tp++;
   const roots=s.parent.filter((p,i)=>p<0&&s.alive[i]).length;
@@ -1359,9 +1428,24 @@ $('startPause').addEventListener('click', ()=>{
   isRunning ? pauseLive() : startLive();
 });
 $('resetBtn').addEventListener('click', resetSim);
-$('speedBtn').addEventListener('click', ()=>{
-  gensPerSec = gensPerSec===10 ? 100 : 10;
-  $('speedBtn').textContent = gensPerSec+'  gen/s';
+function updateSpeedToggle(){
+  const track = $('segTrack');
+  document.querySelectorAll('#speedToggle .seg').forEach(s => {
+    const active = +s.dataset.speed === gensPerSec;
+    s.classList.toggle('active', active);
+    if(active){
+      track.style.left   = s.offsetLeft + 'px';
+      track.style.width  = s.offsetWidth + 'px';
+      track.style.height = s.offsetHeight + 'px';
+    }
+  });
+}
+document.querySelectorAll('#speedToggle .seg').forEach(s => {
+  s.addEventListener('click', ()=>{
+    gensPerSec = +s.dataset.speed;
+    genAccum = 0;          // reset accumulator so new rate takes effect cleanly
+    updateSpeedToggle();
+  });
 });
 $('computeBtn').addEventListener('click', ()=>{
   const btn=$('computeBtn');
@@ -1427,6 +1511,8 @@ document.addEventListener('keydown', e=>{
 
 /* init — start immediately */
 setToggleIcon();
+// updateSpeedToggle needs the DOM to be laid out, so defer by one frame
+requestAnimationFrame(updateSpeedToggle);
 liveInit();
 startLive();
 </script>
