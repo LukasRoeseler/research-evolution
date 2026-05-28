@@ -10,7 +10,7 @@
   :root{
     --bg:#f4f5f7; --surface:#ffffff; --panel:#ffffff; --panel2:#eef0f4; --border:#e2e5ea;
     --txt:#1f2328; --muted:#5b636b; --accent:#1a3a6e; --accent-soft:#e5ecf8;
-    --good:#1a7f37; --bad:#b42318; --pruned:#9aa0a6; --root:#8250df; --amber:#b8860b;
+    --good:#1a7f37; --bad:#b42318; --pruned:#9aa0a6; --pruned-tp:#6aad78; --pruned-fp:#c47c7c; --phantom:#606870; --root:#8250df; --amber:#b8860b;
     --canvas:#ffffff; --grid:#e6e9ee; --header:#2b2b2b; --header-txt:#f4f5f7;
     --shadow:rgba(140,149,159,.18); --tech:#0f6f8a; --rep-ring:#1d6fb8; --depth:#0e7490;
     --serif:Georgia,"Iowan Old Style","Times New Roman",serif;
@@ -19,7 +19,7 @@
   body.dark{
     --bg:#0e1116; --surface:#15181d; --panel:#181c22; --panel2:#1f242c; --border:#2a3038;
     --txt:#e6edf3; --muted:#9aa4af; --accent:#d96a92; --accent-soft:#2a1822;
-    --good:#3fb950; --bad:#f85149; --pruned:#6e7681; --root:#bc8cff; --amber:#d29922;
+    --good:#3fb950; --bad:#f85149; --pruned:#6e7681; --pruned-tp:#52a864; --pruned-fp:#9e5252; --phantom:#8a9099; --root:#bc8cff; --amber:#d29922;
     --canvas:#0a0e14; --grid:#2a3038; --header:#15181d; --header-txt:#e6edf3;
     --shadow:rgba(0,0,0,.45); --tech:#39b6d8; --accent:#5b8fd6; --accent-soft:#0c1e38; --rep-ring:#60a5fa; --depth:#22d3ee;
   }
@@ -146,8 +146,8 @@
     box-shadow:0 2px 10px rgba(0,0,0,.28);
   }
 
-  .stats{display:grid; grid-template-columns:repeat(5,1fr); gap:14px; margin-bottom:10px}
-  @media(max-width:1060px){.stats{grid-template-columns:repeat(3,1fr)}}
+  .stats{display:grid; grid-template-columns:repeat(6,1fr); gap:14px; margin-bottom:10px}
+  @media(max-width:1200px){.stats{grid-template-columns:repeat(3,1fr)}}
   @media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}}
   .stat{position:relative; background:var(--panel); border:1px solid var(--border); border-radius:10px;
         padding:18px 16px; box-shadow:0 1px 4px var(--shadow); text-align:center; overflow:hidden}
@@ -157,8 +157,9 @@
   .stat.c-prec .v{color:var(--accent)} .stat.c-prec::before{background:var(--accent)}
   .stat.c-live .v{color:var(--txt)}    .stat.c-live::before{background:var(--tech)}
   .stat.c-tp .v{color:var(--good)}     .stat.c-tp::before{background:var(--good)}
-  .stat.c-root .v{color:var(--amber)}  .stat.c-root::before{background:var(--amber)}
-  .stat.c-depth .v{color:var(--depth)} .stat.c-depth::before{background:var(--depth)}
+  .stat.c-root .v{color:var(--amber)}      .stat.c-root::before{background:var(--amber)}
+  .stat.c-depth .v{color:var(--depth)}     .stat.c-depth::before{background:var(--depth)}
+  .stat.c-prun .v{color:var(--pruned-fp)}  .stat.c-prun::before{background:var(--pruned-fp)}
 
   /* activity pill row */
   .activity-row{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:18px}
@@ -177,8 +178,11 @@
 
   .canvas-wrap{position:relative; background:var(--panel); border:1px solid var(--border);
                border-radius:10px; padding:14px; margin-bottom:18px; box-shadow:0 1px 4px var(--shadow)}
-  .canvas-wrap:fullscreen{border-radius:0; padding:10px; margin:0; overflow:auto; background:var(--bg)}
-  .canvas-wrap:-webkit-full-screen{border-radius:0; padding:10px; margin:0; overflow:auto; background:var(--bg)}
+  .canvas-wrap:fullscreen{border-radius:0; padding:10px; margin:0; overflow:hidden; background:var(--bg); display:flex; flex-direction:column}
+  .canvas-wrap:-webkit-full-screen{border-radius:0; padding:10px; margin:0; overflow:hidden; background:var(--bg); display:flex; flex-direction:column}
+  .canvas-wrap:fullscreen canvas,.canvas-wrap:-webkit-full-screen canvas{flex:0 0 auto}
+  .canvas-wrap:fullscreen .legend,.canvas-wrap:-webkit-full-screen .legend{flex:0 0 auto; margin-top:8px}
+  .canvas-wrap:fullscreen .tree-actions,.canvas-wrap:-webkit-full-screen .tree-actions{flex:0 0 auto; margin-top:4px}
   .fs-btn{
     position:absolute; top:9px; right:9px; z-index:10;
     width:26px; height:26px; border-radius:5px; padding:0;
@@ -199,6 +203,16 @@
   .dot{width:11px; height:11px; border-radius:50%; display:inline-block}
   .ring{width:12px; height:12px; border-radius:50%; display:inline-block; border:2px solid var(--root); box-sizing:border-box}
   .ring-dashed{border-style:dashed}
+  .ring-sel{border-color:var(--amber) !important}
+  .tree-actions{display:flex; align-items:center; gap:7px; flex-wrap:wrap; margin:8px 4px 2px}
+  .tree-btn{
+    font-size:12px; font-weight:600; padding:5px 12px; border-radius:6px; cursor:pointer;
+    border:1px solid var(--border); background:var(--panel2); color:var(--txt);
+    transition:background .12s, color .12s, border-color .12s;
+  }
+  .tree-btn:hover:not(:disabled){background:var(--accent-soft); color:var(--accent); border-color:var(--accent)}
+  .tree-btn:disabled{opacity:0.35; cursor:default}
+  .tree-sel-label{font-size:11px; color:var(--muted); font-family:ui-monospace,"SFMono-Regular",monospace; margin-left:2px}
 
   .about{max-width:900px}
   .about h2{font-family:var(--serif); font-size:20px; color:var(--accent); margin-top:26px; border-bottom:1px solid var(--border); padding-bottom:7px}
@@ -260,7 +274,7 @@
         <label>
           <span class="name">Sensitivity (TP rate) <span class="q" data-tip="True-positive rate: probability that a genuinely true finding tests positive and gets published. Higher values mean good science is reliably detected and enters the literature">?</span></span>
           <span class="val" id="v_alpha">0.50</span></label>
-        <input type="range" id="alpha" min="0" max="1" step="0.01" value="0.50">
+        <input type="range" id="alpha" min="0" max="1" step="0.01" value="0.80">
       </div>
       <div class="ctrl">
         <label>
@@ -270,7 +284,7 @@
       </div>
       <div class="ctrl">
         <label>
-          <span class="name">File-Drawer Rate <span class="q" data-tip="Probability a failed replication is suppressed and never published. High values let refuted false findings survive in the literature because their refutations never see the light of day">?</span></span>
+          <span class="name">File-Drawer Rate <span class="q" data-tip="Probability that a FAILED replication (negative result) is suppressed and never published. Does not affect passed replications: positive replication results are always published. f = 1 means all failed replications are silently shelved; the literature never learns about them, but confirmed findings still show a solid blue ring.">?</span></span>
           <span class="val" id="v_f">0.50</span></label>
         <input type="range" id="f" min="0" max="1" step="0.01" value="0.50">
       </div>
@@ -300,17 +314,17 @@
             <span class="name">Replication Targets <span class="q" data-tip="Which existing finding a replication re-tests: last published targets the newest finding (frontier), first published targets the oldest (foundations), random picks any living finding uniformly">?</span></span></label>
           <select id="depth">
             <option value="last">last (frontier)</option>
-            <option value="first">first (foundations)</option>
-            <option value="random" selected>random</option>
+            <option value="first" selected>first (foundations)</option>
+            <option value="random">random</option>
           </select>
         </div>
         <div class="ctrl">
           <label>
             <span class="name">Extension Targets <span class="q" data-tip="Which existing finding a new extension builds upon: last published attaches to the newest finding (frontier), first published attaches to the oldest (foundations), random picks any living finding uniformly">?</span></span></label>
           <select id="anchor">
-            <option value="last">last (frontier)</option>
+            <option value="last" selected>last (frontier)</option>
             <option value="first">first (foundations)</option>
-            <option value="random" selected>random</option>
+            <option value="random">random</option>
           </select>
         </div>
       </div>
@@ -336,6 +350,7 @@
         <div class="stat c-live"><div class="v" id="s_living">-</div><div class="k">Active findings</div></div>
         <div class="stat c-root"><div class="v" id="s_roots">-</div><div class="k">Living paradigms</div></div>
         <div class="stat c-depth"><div class="v" id="s_depth">-</div><div class="k">Longest branch</div></div>
+        <div class="stat c-prun"><div class="v" id="s_prun">-</div><div class="k" title="Share of pruned findings that were true positives (pruned by a failed replication of a valid result)">Valid pruned rate</div></div>
       </div>
       <div class="activity-row">
         <div class="act-pill pill-innov">
@@ -370,10 +385,20 @@
           <div class="legend">
             <span><i class="dot" style="background:var(--good)"></i> true positive</span>
             <span><i class="dot" style="background:var(--bad)"></i> false positive</span>
-            <span><i class="dot" style="background:var(--pruned)"></i> pruned (refuted)</span>
+            <span><i class="dot" style="background:var(--pruned-fp)"></i> pruned (false positive)</span>
+            <span><i class="dot" style="background:var(--pruned-tp)"></i> pruned (true positive)</span>
             <span><i class="ring"></i> root strand</span>
-            <span><i class="ring" style="border-color:var(--rep-ring)"></i> replicated (passed)</span>
-            <span><i class="ring ring-dashed" style="border-color:var(--rep-ring)"></i> replicated (filed away)</span>
+            <span><i class="ring" style="border-color:var(--good)"></i> replication confirmed</span>
+            <span><i class="ring" style="border-color:var(--bad)"></i> replication failed</span>
+            <span><i class="ring ring-dashed" style="border-color:var(--bad)"></i> replication filed away</span>
+            <span><i class="dot" style="background:var(--good); opacity:0.42"></i> unpublished (valid finding)</span>
+            <span><i class="dot" style="background:var(--bad); opacity:0.42"></i> unpublished (false positive)</span>
+          </div>
+          <div class="tree-actions">
+            <button class="tree-btn" id="btn-innovate">New Innovation</button>
+            <button class="tree-btn" id="btn-replicate" disabled>Replicate</button>
+            <button class="tree-btn" id="btn-extend" disabled>Extend</button>
+            <span class="tree-sel-label" id="tree-sel-label">Click a node to select it</span>
           </div>
         </div>
       </div>
@@ -446,7 +471,7 @@
             <tr><td><code>p_next</code></td><td>0 to 1</td><td>Probability a newly proposed claim (root, or extension of a true base) is actually true.</td></tr>
             <tr><td><code>alpha</code></td><td>0 to 1</td><td>Sensitivity: P(test positive given claim true).</td></tr>
             <tr><td><code>beta</code></td><td>0 to 1</td><td>False-positive rate: P(test positive given claim false).</td></tr>
-            <tr><td><code>f</code></td><td>0 to 1</td><td>File-drawer rate: probability a failed replication is suppressed.</td></tr>
+            <tr><td><code>f</code></td><td>0 to 1</td><td>File-drawer rate: probability that a <em>failed</em> (negative) replication is suppressed and never published. Passed (positive) replications are always published regardless of <code>f</code>.</td></tr>
             <tr><td><code>p_new_root</code></td><td>0 to 1</td><td>Given a novelty act, probability of founding a new independent root instead of extending.</td></tr>
           </table>
 
@@ -464,7 +489,7 @@
             <li><strong>Novelty to root or extension.</strong> With probability <code>p_new_root</code> spawn a new root (<code>parentId = null</code>); its truth is drawn via <code>p_next</code>. Otherwise pick a parent among living nodes via the Extension Targets setting.</li>
             <li><strong>Inheritance.</strong> If the chosen base is false, the extension is necessarily false. If the base is true, the extension is true with probability <code>p_next</code>. Extensions are worthless if the base is false.</li>
             <li><strong>Testing and publication.</strong> A claim is published only if its test reads positive: probability <code>alpha</code> if true, <code>beta</code> if false.</li>
-            <li><strong>Replication and pruning.</strong> A replication re-tests a living node chosen by the Replication Targets setting. A failed (negative) re-test is suppressed with probability <code>f</code>; otherwise it is published and the refuted node plus all its descendants are recursively pruned (a retraction cascade). Pruned nodes stay visible in the tree, drawn in grey.</li>
+            <li><strong>Replication and pruning.</strong> A replication re-tests a living node chosen by the Replication Targets setting. If the re-test is <em>positive</em>, the finding is confirmed (solid blue ring) and nothing is pruned — this always enters the record. If the re-test is <em>negative</em>, it is suppressed with probability <code>f</code> (dashed blue ring, finding survives); otherwise the negative result is published and the refuted node plus all its descendants are recursively pruned (retraction cascade, grey nodes). <code>f = 1</code> therefore prevents all pruning but does not prevent positive confirmations.</li>
           </ol>
 
           <h2>Reading the phylogeny</h2>
@@ -527,7 +552,7 @@ function simulate(p){
   const rng = mulberry32(p.seed >>> 0);
   const rand = () => rng();
 
-  const parent = [], truth = [], alive = [], born = [], depthA = [], replicated = [], filedAway = [];
+  const parent = [], truth = [], alive = [], born = [], depthA = [], replicated = [], filedAway = [], repPassed = [];
   const timeline = [];
 
   const testPositive = isTrue => rand() < (isTrue ? p.alpha : p.beta);
@@ -544,7 +569,7 @@ function simulate(p){
   function addNode(par, isTrue, gen){
     parent.push(par); truth.push(isTrue); alive.push(true);
     born.push(gen); depthA.push(par < 0 ? 0 : depthA[par] + 1);
-    replicated.push(false); filedAway.push(false);
+    replicated.push(false); filedAway.push(false); repPassed.push(false);
   }
   function livingIndices(){
     const out = [];
@@ -591,6 +616,7 @@ function simulate(p){
         }
         replicated[target] = true;
         const passed = testPositive(truth[target]);
+        repPassed[target] = passed;
         if(!passed){ if(rand() >= p.f) prune(target); else filedAway[target] = true; }
       }
     } else {
@@ -615,7 +641,7 @@ function simulate(p){
 
   return {
     seedUsed: p.seed >>> 0,
-    nodes: parent.map((par,i)=>({id:i, parentId: par<0?null:par, trueStatus:truth[i], alive:alive[i], born:born[i], depth:depthA[i], replicated:replicated[i], filedAway:filedAway[i]})),
+    nodes: parent.map((par,i)=>({id:i, parentId: par<0?null:par, trueStatus:truth[i], alive:alive[i], born:born[i], depth:depthA[i], replicated:replicated[i], filedAway:filedAway[i], repPassed:repPassed[i]})),
     precision: live.length ? tp/live.length : 0,
     living: live.length, tp, roots, maxBranchDepth, timeline, gens: p.gens,
     maxBorn: born.length ? Math.max(...born) : 1
@@ -629,6 +655,7 @@ function theme(){
   return {
     canvas:cssVar('--canvas'), grid:cssVar('--grid'), muted:cssVar('--muted'), txt:cssVar('--txt'),
     good:cssVar('--good'), bad:cssVar('--bad'), pruned:cssVar('--pruned'),
+    prunedTp:cssVar('--pruned-tp'), prunedFp:cssVar('--pruned-fp'), phantom:cssVar('--phantom'),
     root:cssVar('--root'), amber:cssVar('--amber'), repRing:cssVar('--rep-ring')
   };
 }
@@ -672,6 +699,9 @@ document.addEventListener('webkitfullscreenchange', ()=>{ updateFsBtns(); if(las
 /* ====================== State ====================== */
 let lastResult = null, lastSweep = null, treeLayout = null;
 let treeZoom = 1, treePanX = 0, treePanY = 0, treeDragging = false, treeDragLast = null;
+let treeDragStart = null, treeDragMoved = false;
+let treeRenderParams = null; // set by drawTree; used for hit-testing
+let selectedNodeId = null;
 
 const sliders = [['r','v_r'],['pnext','v_pnext'],['alpha','v_alpha'],['beta','v_beta'],['f','v_f'],['pnr','v_pnr']];
 sliders.forEach(([id,vid])=> $(id).addEventListener('input', ()=> $(vid).textContent=(+$(id).value).toFixed(2)));
@@ -704,8 +734,9 @@ function fitCanvas(cv){
   const cssW = cv.clientWidth;
   if(cssW <= 0) return null;
   const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+  const fsReserve = (inFS && cv.id === 'tree') ? 120 : 56; // extra space for legend + action buttons
   const cssH = inFS
-    ? Math.max(400, window.innerHeight - 56)
+    ? Math.max(400, window.innerHeight - fsReserve)
     : (() => { const rect = cv.getBoundingClientRect(); return Math.max(240, Math.min(window.innerHeight - rect.top - 80, 700)); })();
   cv.style.height = cssH + 'px';
   cv.width = Math.round(cssW * dpr);
@@ -845,6 +876,7 @@ function drawTree(progress){
   const offX=(w-bw*scale)/2 - minX*scale;
   const offY=(h-bh*scale)/2 - minY*scale;
   const SX=x=>offX+x*scale, SY=y=>offY+y*scale;
+  treeRenderParams = { offX, offY, scale };
 
   ctx.save();
   ctx.translate(treePanX, treePanY);
@@ -852,11 +884,12 @@ function drawTree(progress){
 
   const grow=0.28;
   const reveal=n=>{ const a=(n.born/maxBorn)*(1-grow); return Math.max(0,Math.min(1,(progress-a)/grow)); };
-  const colNode=n=> n.alive ? (n.trueStatus?T.good:T.bad) : T.pruned;
-  const colEdgeRGBA=(n,al)=>{
-    const c = n.alive ? (n.trueStatus?T.good:T.bad) : T.pruned;
-    return c; // solid; alpha handled via globalAlpha
-  };
+  // pruned nodes shown in muted green (was TP) or muted red (was FP); phantoms grey
+  // phantom nodes use same hue as real nodes but are rendered at low opacity
+  const colNode=n=> n.alive ? (n.trueStatus?T.good:T.bad)
+    : n.failedExt ? (n.trueStatus?T.good:T.bad)
+    : (n.trueStatus?T.prunedTp:T.prunedFp);
+  const rz=treeZoom; // used to keep screen px constant despite ctx scale
 
   // edges grow from parent toward child
   nodes.forEach(n=>{
@@ -865,35 +898,158 @@ function drawTree(progress){
     const rv=reveal(n); if(rv<=0) return;
     const px=SX(par._x), py=SY(par._y), ex=SX(n._x), ey=SY(n._y);
     const cx=px+(ex-px)*rv, cy=py+(ey-py)*rv;
-    ctx.globalAlpha = n.alive ? 0.7 : 0.4;
+    ctx.globalAlpha = n.failedExt ? 0.45 : (n.alive ? 0.7 : 0.4);
     ctx.strokeStyle = colNode(n);
-    ctx.lineWidth = Math.max(0.6, 3 - n.depth*0.26);
+    ctx.lineWidth = n.failedExt ? 0.8/rz : Math.max(0.6/rz, (2.2 - n.depth*0.18)/rz);
     ctx.lineCap='round';
+    if(n.failedExt) ctx.setLineDash([3/rz, 3/rz]);
     ctx.beginPath(); ctx.moveTo(px,py); ctx.lineTo(cx,cy); ctx.stroke();
+    if(n.failedExt) ctx.setLineDash([]);
   });
   ctx.globalAlpha=1;
 
-  // nodes
+  // nodes — all radii and lineWidths divided by rz so they stay constant on screen
   nodes.forEach(n=>{
     const rv=reveal(n); if(rv<=0) return;
     const isRoot=n.parentId===null;
     const x=SX(n._x), y=SY(n._y);
+
+    // phantom (failed innovation or extension): faded dot, colour shows potential truth
+    if(n.failedExt){
+      ctx.globalAlpha = 0.45;
+      ctx.fillStyle = colNode(n); // green if would-have-been TP, red if FP
+      ctx.beginPath(); ctx.arc(x, y, 2/rz * Math.min(1,rv*1.3), 0, 7); ctx.fill();
+      ctx.globalAlpha = 1;
+      return;
+    }
+
     ctx.globalAlpha = n.alive ? 1 : 0.65;
     ctx.fillStyle = colNode(n);
-    const rad=(isRoot?5:3.2)*Math.min(1,rv*1.3);
-    ctx.beginPath(); ctx.arc(x,y,rad,0,7); ctx.fill();
-    if(isRoot && rv>=1){ ctx.globalAlpha=1; ctx.strokeStyle=T.root; ctx.lineWidth=2; ctx.beginPath(); ctx.arc(x,y,rad+2.5,0,7); ctx.stroke(); }
+    const RAD = (isRoot ? 4 : 2.5) / rz * Math.min(1, rv*1.3); // fixed screen px
+    ctx.beginPath(); ctx.arc(x,y,RAD,0,7); ctx.fill();
+    if(isRoot && rv>=1){
+      ctx.globalAlpha=1; ctx.strokeStyle=T.root; ctx.lineWidth=1.8/rz;
+      ctx.beginPath(); ctx.arc(x,y,RAD+2.2/rz,0,7); ctx.stroke();
+    }
     if(n.replicated && rv>=1){
       ctx.globalAlpha = n.alive ? 0.9 : 0.55;
-      ctx.strokeStyle = T.repRing;
-      ctx.lineWidth = 2;
-      if(n.filedAway) ctx.setLineDash([4, 3]);
-      ctx.beginPath(); ctx.arc(x, y, rad + (isRoot ? 6.5 : 4.5), 0, Math.PI*2); ctx.stroke();
+      ctx.strokeStyle = n.repPassed ? T.good : T.bad;
+      ctx.lineWidth = 1.8/rz;
+      if(n.filedAway) ctx.setLineDash([4/rz, 3/rz]);
+      ctx.beginPath(); ctx.arc(x, y, RAD + (isRoot ? 5.5 : 4)/rz, 0, Math.PI*2); ctx.stroke();
       ctx.setLineDash([]);
+    }
+    if(n.id === selectedNodeId && rv>=1){
+      ctx.globalAlpha = 1;
+      ctx.strokeStyle = T.amber;
+      ctx.lineWidth = 2/rz;
+      ctx.setLineDash([]);
+      const selRad = RAD + ((isRoot ? 9.5 : 8) + (n.replicated ? 5 : 0))/rz;
+      ctx.beginPath(); ctx.arc(x, y, selRad, 0, Math.PI*2); ctx.stroke();
     }
   });
   ctx.globalAlpha=1;
   ctx.restore();
+}
+
+/* ---- Tree hit-testing and manual interaction ---- */
+function findNodeAtScreenPos(ex, ey){
+  if(!treeLayout || !treeRenderParams) return null;
+  const {offX, offY, scale} = treeRenderParams;
+  const {nodes} = treeLayout;
+  // compute node position in screen (canvas-element) pixels and compare there,
+  // so the hit radius stays constant regardless of zoom level
+  const HIT2 = 16 * 16; // squared hit radius in screen px
+  let best = null, bestD = HIT2;
+  for(const n of nodes){
+    if(n.failedExt) continue; // phantom nodes are not selectable
+    const sx = (offX + n._x * scale) * treeZoom + treePanX;
+    const sy = (offY + n._y * scale) * treeZoom + treePanY;
+    const d2 = (ex - sx) ** 2 + (ey - sy) ** 2;
+    if(d2 < bestD){ bestD = d2; best = n; }
+  }
+  return best;
+}
+
+function updateTreeActions(){
+  const repBtn = $('btn-replicate');
+  const extBtn = $('btn-extend');
+  const lbl    = $('tree-sel-label');
+  if(selectedNodeId === null || !liveState){
+    repBtn.disabled = true;
+    extBtn.disabled = true;
+    lbl.textContent = selectedNodeId === null ? 'Click a node to select it' : '';
+    return;
+  }
+  const s = liveState;
+  const alive      = s.alive[selectedNodeId];
+  const replicated = s.replicated[selectedNodeId];
+  const isTrue     = s.truth[selectedNodeId];
+  repBtn.disabled  = !alive || replicated;
+  extBtn.disabled  = !alive;
+  const status = !alive ? 'pruned' : (isTrue ? 'true positive' : 'false positive');
+  const repStatus = replicated ? (s.repPassed[selectedNodeId] ? ', rep confirmed' : (s.filedAway[selectedNodeId] ? ', rep filed away' : ', rep failed')) : '';
+  lbl.textContent = 'Node ' + selectedNodeId + ' (' + status + repStatus + ')';
+}
+
+function manualRefresh(){
+  lastResult = liveSnapshot();
+  lastNodeCount = lastResult ? lastResult.nodes.length : -1;
+  computeTreeLayout();
+  updateStats(lastResult);
+  updateTreeActions();
+  draw(1);
+}
+
+function manualInnovation(){
+  if(!liveState) return;
+  const s = liveState;
+  const pnext = +$('pnext').value;
+  const alpha = +$('alpha').value, beta = +$('beta').value;
+  const testPos = isTrue => s.rand() < (isTrue ? alpha : beta);
+  const isTrue = s.rand() < pnext;
+  if(testPos(isTrue)){
+    liveAddNode(s, -1, isTrue, s.gen); s.counters.innovations++;
+  } else {
+    // always show something: phantom root dot (no parent, no line)
+    liveAddPhantom(s, -1, isTrue, s.gen);
+  }
+  s.gen++;
+  manualRefresh();
+}
+
+function manualReplication(nodeId){
+  if(!liveState) return;
+  const s = liveState;
+  if(!s.alive[nodeId] || s.replicated[nodeId]) return;
+  const alpha = +$('alpha').value, beta = +$('beta').value;
+  const f = +$('f').value;
+  const testPos = isTrue => s.rand() < (isTrue ? alpha : beta);
+  s.replicated[nodeId] = true; s.counters.replications++;
+  const passed = testPos(s.truth[nodeId]);
+  s.repPassed[nodeId] = passed;
+  if(!passed){ if(s.rand() >= f) livePrune(s, nodeId); else s.filedAway[nodeId] = true; }
+  s.gen++;
+  manualRefresh();
+}
+
+function manualExtension(nodeId){
+  if(!liveState) return;
+  const s = liveState;
+  if(!s.alive[nodeId]) return;
+  const pnext = +$('pnext').value;
+  const alpha = +$('alpha').value, beta = +$('beta').value;
+  const testPos = isTrue => s.rand() < (isTrue ? alpha : beta);
+  const isTrue = s.truth[nodeId] ? (s.rand() < pnext) : false;
+  if(testPos(isTrue)){
+    liveAddNode(s, nodeId, isTrue, s.gen); s.counters.extensions++;
+  } else {
+    // always add a new phantom for manual clicks so something is always visible
+    liveAddPhantom(s, nodeId, isTrue, s.gen);
+    s.phantomSlot.set(nodeId, s.parent.length-1);
+  }
+  s.gen++;
+  manualRefresh();
 }
 
 /* ---- Optimal replication rate bar chart (100 sims per r value) ---- */
@@ -1217,6 +1373,9 @@ function updateStats(res){
   $('s_tp').textContent     = res ? res.tp : '-';
   $('s_roots').textContent  = res ? res.roots : '-';
   $('s_depth').textContent  = res && res.living ? res.maxBranchDepth : '-';
+  $('s_prun').textContent   = res && res.totalPruned > 0
+    ? Math.round(100 * res.prunedTp / res.totalPruned) + '%'
+    : (res ? '0%' : '-');
   if(liveState){
     const maxGens = Math.max(10, Math.min(20000, +$('gens').value|0));
     $('s_innov').textContent = liveState.counters.innovations;
@@ -1241,12 +1400,15 @@ function liveInit(){
   const rng = mulberry32(seed >>> 0);
   liveState = {
     rng, rand: ()=>rng(),
-    parent:[], truth:[], alive:[], born:[], depthA:[], replicated:[], filedAway:[],
+    parent:[], truth:[], alive:[], born:[], depthA:[], replicated:[], filedAway:[], repPassed:[],
+    failedExt:[],        // true for phantom "failed extension" nodes
+    phantomSlot: new Map(), // parentId -> index; limits to 1 phantom per parent
     timeline:[], gen:0,
     counters:{ innovations:0, extensions:0, replications:0 }
   };
   treeZoom=1; treePanX=0; treePanY=0;
   lastNodeCount=-1;
+  selectedNodeId=null;
 }
 
 function livePrune(s, idx){
@@ -1262,7 +1424,17 @@ function livePrune(s, idx){
 function liveAddNode(s, par, isTrue, gen){
   s.parent.push(par); s.truth.push(isTrue); s.alive.push(true);
   s.born.push(gen); s.depthA.push(par<0 ? 0 : s.depthA[par]+1);
-  s.replicated.push(false); s.filedAway.push(false);
+  s.replicated.push(false); s.filedAway.push(false); s.repPassed.push(false);
+  s.failedExt.push(false);
+}
+
+function liveAddPhantom(s, par, isTrue, gen){
+  // phantom node for a failed extension attempt -- not alive, not a real finding
+  // isTrue records what the finding *would* have been, for coloring
+  s.parent.push(par); s.truth.push(isTrue); s.alive.push(false);
+  s.born.push(gen); s.depthA.push(par<0 ? 0 : s.depthA[par]+1);
+  s.replicated.push(false); s.filedAway.push(false); s.repPassed.push(false);
+  s.failedExt.push(true);
 }
 
 function liveLiving(s){
@@ -1300,18 +1472,18 @@ function liveStep(n){
     const testPos = isTrue => s.rand() < (isTrue ? alpha : beta);
     const living=liveLiving(s);
     const doRep=living.length>0 && s.rand()<r;
-    if(doRep){
-      const candidates=living.filter(i=>!s.replicated[i]);
-      if(candidates.length>0){
-        let target;
-        if(depth==='random') target=candidates[Math.floor(s.rand()*candidates.length)];
-        else if(depth==='first'){ target=candidates[0]; for(const i of candidates) if(s.born[i]<s.born[target]) target=i; }
-        else { target=candidates[0]; for(const i of candidates) if(s.born[i]>s.born[target]) target=i; }
-        s.replicated[target]=true; s.counters.replications++;
-        const passed=testPos(s.truth[target]);
-        if(!passed){ if(s.rand()>=f) livePrune(s,target); else s.filedAway[target]=true; }
-      }
+    const candidates=living.filter(i=>!s.replicated[i]);
+    if(doRep && candidates.length>0){
+      let target;
+      if(depth==='random') target=candidates[Math.floor(s.rand()*candidates.length)];
+      else if(depth==='first'){ target=candidates[0]; for(const i of candidates) if(s.born[i]<s.born[target]) target=i; }
+      else { target=candidates[0]; for(const i of candidates) if(s.born[i]>s.born[target]) target=i; }
+      s.replicated[target]=true; s.counters.replications++;
+      const passed=testPos(s.truth[target]);
+      s.repPassed[target]=passed;
+      if(!passed){ if(s.rand()>=f) livePrune(s,target); else s.filedAway[target]=true; }
     } else {
+      // also falls through when doRep=true but nothing left to replicate
       const isRoot=living.length===0 || s.rand()<pnr;
       if(isRoot){
         const isTrue=s.rand()<pnext;
@@ -1319,7 +1491,14 @@ function liveStep(n){
       } else {
         const anch=livePickAnchor(s,living,anchor);
         const isTrue=s.truth[anch] ? (s.rand()<pnext) : false;
-        if(testPos(isTrue)){ liveAddNode(s,anch,isTrue,s.gen); s.counters.extensions++; }
+        if(testPos(isTrue)){
+          liveAddNode(s,anch,isTrue,s.gen); s.counters.extensions++;
+        } else {
+          // failed extension: add/refresh one phantom per parent to show the attempt
+          const ex = s.phantomSlot.get(anch);
+          if(ex !== undefined){ s.born[ex]=s.gen; s.truth[ex]=isTrue; } // refresh
+          else { liveAddPhantom(s,anch,isTrue,s.gen); s.phantomSlot.set(anch, s.parent.length-1); }
+        }
       }
     }
     const live2=liveLiving(s);
@@ -1336,15 +1515,21 @@ function liveSnapshot(){
   const s=liveState, n=s.parent.length;
   const nodes=[];
   for(let i=0;i<n;i++) nodes.push({id:i, parentId:s.parent[i]<0?null:s.parent[i],
-    trueStatus:s.truth[i], alive:s.alive[i], born:s.born[i], depth:s.depthA[i], replicated:s.replicated[i], filedAway:s.filedAway[i]});
+    trueStatus:s.truth[i], alive:s.alive[i], born:s.born[i], depth:s.depthA[i],
+    replicated:s.replicated[i], filedAway:s.filedAway[i], repPassed:s.repPassed[i],
+    failedExt:s.failedExt[i]});
   const live=[]; for(let i=0;i<n;i++) if(s.alive[i]) live.push(i);
   let tp=0; for(const i of live) if(s.truth[i]) tp++;
+  let prunedTp=0, totalPruned=0;
+  // exclude phantom failed-extension nodes from pruning stats
+  for(let i=0;i<n;i++) if(!s.alive[i] && !s.failedExt[i]){ totalPruned++; if(s.truth[i]) prunedTp++; }
   const roots=s.parent.filter((p,i)=>p<0&&s.alive[i]).length;
   const maxBranchDepth=live.length ? Math.max(...live.map(i=>s.depthA[i])) : 0;
   const maxGens=Math.max(10,Math.min(20000,+$('gens').value|0));
   return {
     nodes, precision:live.length?tp/live.length:0,
     living:live.length, tp, roots, maxBranchDepth,
+    prunedTp, totalPruned,
     timeline:s.timeline, gens:maxGens,
     maxBorn:s.born.length?Math.max(...s.born):1
   };
@@ -1375,6 +1560,7 @@ function resetSim(){
   lastResult=liveSnapshot();
   computeTreeLayout();
   updateStats(lastResult);
+  updateTreeActions();
   draw(1);
   updateStartBtn();
 }
@@ -1457,12 +1643,14 @@ $('computeBtn').addEventListener('click', ()=>{
 
 window.addEventListener('resize', ()=>{ if(lastResult) draw(1); });
 
-/* ---- Tree canvas: mouse-wheel zoom + drag pan ---- */
+/* ---- Tree canvas: zoom, pan, and manual interaction ---- */
 (function(){
   const cv = $('tree');
 
+  // scroll to zoom
   cv.addEventListener('wheel', e=>{
     e.preventDefault();
+    e.stopPropagation();
     const rect = cv.getBoundingClientRect();
     const cx = e.clientX - rect.left;
     const cy = e.clientY - rect.top;
@@ -1475,28 +1663,57 @@ window.addEventListener('resize', ()=>{ if(lastResult) draw(1); });
     if(lastResult) drawTree(1);
   }, {passive: false});
 
+  // left-click: start drag; release without moving = select node
   cv.addEventListener('mousedown', e=>{
+    if(e.button !== 0) return;
     treeDragging = true;
-    treeDragLast = {x: e.clientX, y: e.clientY};
+    treeDragMoved = false;
+    treeDragStart = {x: e.clientX, y: e.clientY};
+    treeDragLast  = {x: e.clientX, y: e.clientY};
     cv.classList.add('dragging');
     e.preventDefault();
   });
 
   window.addEventListener('mousemove', e=>{
     if(!treeDragging) return;
+    const dx = e.clientX - treeDragStart.x, dy = e.clientY - treeDragStart.y;
+    if(Math.abs(dx) > 4 || Math.abs(dy) > 4) treeDragMoved = true;
     treePanX += e.clientX - treeDragLast.x;
     treePanY += e.clientY - treeDragLast.y;
     treeDragLast = {x: e.clientX, y: e.clientY};
     if(lastResult) drawTree(1);
   });
 
-  window.addEventListener('mouseup', ()=>{
+  window.addEventListener('mouseup', e=>{
     if(!treeDragging) return;
     treeDragging = false;
     $('tree').classList.remove('dragging');
+    if(!treeDragMoved){
+      // click (not drag): select or deselect node
+      const rect = $('tree').getBoundingClientRect();
+      const ex = e.clientX - rect.left, ey = e.clientY - rect.top;
+      const node = findNodeAtScreenPos(ex, ey);
+      selectedNodeId = (node && node.id !== selectedNodeId) ? node.id : null;
+      updateTreeActions();
+      if(lastResult) drawTree(1);
+    }
     treeDragLast = null;
   });
+
+  // cursor: pointer over clickable node, grab elsewhere
+  cv.addEventListener('mousemove', e=>{
+    if(treeDragging || !treeLayout) return;
+    const rect = cv.getBoundingClientRect();
+    const node = findNodeAtScreenPos(e.clientX - rect.left, e.clientY - rect.top);
+    cv.style.cursor = node ? 'pointer' : 'grab';
+  });
+  cv.addEventListener('mouseleave', ()=>{ if(!treeDragging) cv.style.cursor = ''; });
 })();
+
+// tree action buttons
+$('btn-innovate').addEventListener('click', ()=>{ manualInnovation(); });
+$('btn-replicate').addEventListener('click', ()=>{ if(selectedNodeId !== null) manualReplication(selectedNodeId); });
+$('btn-extend').addEventListener('click',    ()=>{ if(selectedNodeId !== null) manualExtension(selectedNodeId); });
 
 /* Enter / R shortcut to re-run (ignored when focus is in a text/number input) */
 document.addEventListener('keydown', e=>{
@@ -1513,6 +1730,7 @@ document.addEventListener('keydown', e=>{
 setToggleIcon();
 // updateSpeedToggle needs the DOM to be laid out, so defer by one frame
 requestAnimationFrame(updateSpeedToggle);
+updateTreeActions();
 liveInit();
 startLive();
 </script>
