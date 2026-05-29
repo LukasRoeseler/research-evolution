@@ -154,12 +154,12 @@
   .stat::before{content:""; position:absolute; top:0; left:0; right:0; height:3px; background:var(--accent); opacity:.85}
   .stat .v{font-size:30px; font-weight:750; font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace; letter-spacing:-.01em}
   .stat .k{color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.09em; margin-top:4px; font-weight:600}
-  .stat.c-prec .v{color:var(--accent)} .stat.c-prec::before{background:var(--accent)}
-  .stat.c-live .v{color:var(--txt)}    .stat.c-live::before{background:var(--tech)}
-  .stat.c-tp .v{color:var(--good)}     .stat.c-tp::before{background:var(--good)}
+  .stat.c-fp  .v{color:var(--bad)}        .stat.c-fp::before{background:var(--bad)}
+  .stat.c-fn  .v{color:var(--pruned-tp)}  .stat.c-fn::before{background:var(--pruned-tp)}
+  .stat.c-live .v{color:var(--txt)}        .stat.c-live::before{background:var(--tech)}
+  .stat.c-tp .v{color:var(--good)}         .stat.c-tp::before{background:var(--good)}
   .stat.c-root .v{color:var(--amber)}      .stat.c-root::before{background:var(--amber)}
   .stat.c-depth .v{color:var(--depth)}     .stat.c-depth::before{background:var(--depth)}
-  .stat.c-prun .v{color:var(--pruned-fp)}  .stat.c-prun::before{background:var(--pruned-fp)}
 
   /* activity pill row */
   .activity-row{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:18px}
@@ -213,6 +213,37 @@
   .tree-btn:hover:not(:disabled){background:var(--accent-soft); color:var(--accent); border-color:var(--accent)}
   .tree-btn:disabled{opacity:0.35; cursor:default}
   .tree-sel-label{font-size:11px; color:var(--muted); font-family:ui-monospace,"SFMono-Regular",monospace; margin-left:2px}
+
+  /* parameter group dividers */
+  .param-group{font-size:10.5px; font-weight:700; text-transform:uppercase; letter-spacing:.12em;
+               color:var(--muted); border-top:1px solid var(--border); margin:14px 0 10px; padding-top:10px}
+  .param-group:first-child{border-top:none; margin-top:0; padding-top:0}
+
+  /* collapsible params toggle (mobile only) */
+  .params-toggle{
+    display:none; width:100%; text-align:left; justify-content:space-between;
+    align-items:center; background:none; border:none; cursor:pointer;
+    color:var(--txt); font-size:11.5px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.14em; padding:0 0 8px; margin-bottom:4px; border-bottom:1px solid var(--border);
+  }
+  .params-toggle .chevron{transition:transform .2s; font-size:14px; color:var(--muted)}
+  .params-toggle.open .chevron{transform:rotate(180deg)}
+  .params-body{transition:none}
+  /* On desktop, show the panel title as a static h3-like label */
+  @media(min-width:981px){
+    .params-toggle{
+      display:block; cursor:default; pointer-events:none;
+      font-size:11.5px; font-weight:700; text-transform:uppercase;
+      letter-spacing:.14em; color:var(--muted); padding:0 0 14px; border-bottom:none;
+      border:none; background:none; width:100%;
+    }
+    .params-toggle .chevron{display:none}
+  }
+  @media(max-width:980px){
+    .params-toggle{display:flex}
+    .params-body{overflow:hidden}
+    .params-body.collapsed{display:none}
+  }
 
   /* ---- Mobile / touch optimizations ---- */
   @media(max-width:640px){
@@ -277,101 +308,125 @@
   <div class="layout">
     <!-- Controls -->
     <div class="panel">
-      <h3>Parameters</h3>
+      <button class="params-toggle open" id="paramsToggle">
+        Parameters <span class="chevron">&#9660;</span>
+      </button>
+      <div class="params-body" id="paramsBody">
 
-      <div class="ctrl">
-        <label>
-          <span class="name">Replication Rate <span class="q" data-tip="Determines what proportion of studies are replications vs. non-replications; when r = 1 only replications are conducted, when r = 0 only new studies are produced">?</span></span>
-          <span class="val" id="v_r">0.05</span></label>
-        <input type="range" id="r" min="0" max="1" step="0.01" value="0.05">
-      </div>
-      <div class="ctrl">
-        <label>
-          <span class="name">Base Truth Probability <span class="q" data-tip="Probability that a newly proposed claim is actually true; applies to new independent paradigms and to extensions built on true findings. Low values model an error-prone or hard-to-study field">?</span></span>
-          <span class="val" id="v_pnext">0.50</span></label>
-        <input type="range" id="pnext" min="0" max="1" step="0.01" value="0.50">
-      </div>
-      <div class="ctrl">
-        <label>
-          <span class="name">Sensitivity (TP rate) <span class="q" data-tip="True-positive rate: probability that a genuinely true finding tests positive and gets published. Higher values mean good science is reliably detected and enters the literature">?</span></span>
-          <span class="val" id="v_alpha">0.50</span></label>
-        <input type="range" id="alpha" min="0" max="1" step="0.01" value="0.80">
-      </div>
-      <div class="ctrl">
-        <label>
-          <span class="name">False-Positive Rate <span class="q" data-tip="Probability that a false finding tests positive and gets published anyway. Higher values flood the literature with false findings and are the main driver of low precision">?</span></span>
-          <span class="val" id="v_beta">0.05</span></label>
-        <input type="range" id="beta" min="0" max="1" step="0.01" value="0.05">
-      </div>
-      <div class="ctrl">
-        <label>
-          <span class="name">File-Drawer Rate <span class="q" data-tip="Probability that a FAILED replication (negative result) is suppressed and never published. Does not affect passed replications: positive replication results are always published. f = 1 means all failed replications are silently shelved; the literature never learns about them, but confirmed findings still show a solid blue ring.">?</span></span>
-          <span class="val" id="v_f">0.50</span></label>
-        <input type="range" id="f" min="0" max="1" step="0.01" value="0.50">
-      </div>
-      <div class="ctrl">
-        <label>
-          <span class="name">New-Strand Probability <span class="q" data-tip="Given a novelty act, the chance of founding a new independent paradigm (a root with no parent) rather than extending existing work. Higher values produce a forest of many separate research lineages">?</span></span>
-          <span class="val" id="v_pnr">0.50</span></label>
-        <input type="range" id="pnr" min="0" max="1" step="0.01" value="0.50">
-      </div>
-
-      <div class="row">
+        <div class="param-group">Original Studies (innovations &amp; extensions)</div>
         <div class="ctrl">
           <label>
-            <span class="name">Max Generations <span class="q" data-tip="Number of research acts the simulation runs. More generations produce a larger, more developed knowledge forest">?</span></span></label>
-          <input type="number" id="gens" min="10" max="20000" step="10" value="500">
+            <span class="name">Base Truth Probability <span class="q" data-tip="Probability that a newly proposed claim is actually true; applies to new independent paradigms and to extensions built on true findings. Low values model an error-prone or hard-to-study field">?</span></span>
+            <span class="val" id="v_pnext">0.50</span></label>
+          <input type="range" id="pnext" min="0" max="1" step="0.01" value="0.50">
         </div>
         <div class="ctrl">
           <label>
-            <span class="name">Seed <span class="q" data-tip="Random seed for reproducibility. The same seed always produces the same run. Set to 0 to draw a fresh random seed on every run so each simulation is unique">?</span></span></label>
-          <input type="number" id="seed" step="1" value="42">
+            <span class="name">New-Strand Probability <span class="q" data-tip="Given a novelty act, the chance of founding a new independent paradigm (a root with no parent) rather than extending existing work. Higher values produce a forest of many separate research lineages">?</span></span>
+            <span class="val" id="v_pnr">0.50</span></label>
+          <input type="range" id="pnr" min="0" max="1" step="0.01" value="0.50">
         </div>
-      </div>
+        <div class="row">
+          <div class="ctrl">
+            <label>
+              <span class="name">False Positive &alpha; <span class="q" data-tip="Probability that an original study is published as positive despite the claim being false (Type I error / significance level). Default 50% reflects a lenient publishing culture.">?</span></span>
+              <span class="val" id="v_ao">0.50</span></label>
+            <input type="range" id="ao" min="0" max="1" step="0.01" value="0.50">
+          </div>
+          <div class="ctrl">
+            <label>
+              <span class="name">False Negative &beta; <span class="q" data-tip="Probability that an original study is not published despite the claim being true (Type II error = 1 - power). Default 50% reflects low statistical power.">?</span></span>
+              <span class="val" id="v_bo">0.50</span></label>
+            <input type="range" id="bo" min="0" max="1" step="0.01" value="0.50">
+          </div>
+        </div>
 
-      <div class="row">
+        <div class="param-group">Replications</div>
         <div class="ctrl">
           <label>
-            <span class="name">Replication Targets <span class="q" data-tip="Which existing finding a replication re-tests: last published targets the newest finding (frontier), first published targets the oldest (foundations), random picks any living finding uniformly">?</span></span></label>
-          <select id="depth">
-            <option value="last">last (frontier)</option>
-            <option value="first" selected>first (foundations)</option>
-            <option value="random">random</option>
-          </select>
+            <span class="name">Replication Rate <span class="q" data-tip="Determines what proportion of studies are replications vs. non-replications; when r = 1 only replications are conducted, when r = 0 only new studies are produced">?</span></span>
+            <span class="val" id="v_r">0.05</span></label>
+          <input type="range" id="r" min="0" max="1" step="0.01" value="0.05">
         </div>
         <div class="ctrl">
           <label>
-            <span class="name">Extension Targets <span class="q" data-tip="Which existing finding a new extension builds upon: last published attaches to the newest finding (frontier), first published attaches to the oldest (foundations), random picks any living finding uniformly">?</span></span></label>
-          <select id="anchor">
-            <option value="last" selected>last (frontier)</option>
-            <option value="first">first (foundations)</option>
-            <option value="random">random</option>
-          </select>
+            <span class="name">File-Drawer Rate <span class="q" data-tip="Probability that a FAILED replication (negative result) is suppressed and never published. Does not affect passed replications: positive replication results are always published. f = 1 means all failed replications are silently shelved.">?</span></span>
+            <span class="val" id="v_f">0.50</span></label>
+          <input type="range" id="f" min="0" max="1" step="0.01" value="0.50">
         </div>
-      </div>
+        <div class="row">
+          <div class="ctrl">
+            <label>
+              <span class="name">False Positive &alpha; <span class="q" data-tip="Probability that a replication returns positive despite the original claim being false. Usually lower than for original studies due to pre-registration and closer scrutiny. Default 5%.">?</span></span>
+              <span class="val" id="v_ar">0.05</span></label>
+            <input type="range" id="ar" min="0" max="1" step="0.01" value="0.05">
+          </div>
+          <div class="ctrl">
+            <label>
+              <span class="name">False Negative &beta; <span class="q" data-tip="Probability that a replication returns negative despite the original claim being true (under-powered replication). Default 20% corresponds to 80% power, a common target.">?</span></span>
+              <span class="val" id="v_br">0.20</span></label>
+            <input type="range" id="br" min="0" max="1" step="0.01" value="0.20">
+          </div>
+        </div>
 
-      <div class="btns">
-        <button class="act" id="startPause" title="Start or pause the live simulation">Start</button>
-        <button class="sec" id="resetBtn" title="Reset the simulation to generation 0">Reset</button>
-        <div class="speed-toggle" id="speedToggle" title="Simulation speed">
-          <div class="seg-track" id="segTrack"></div>
-          <button class="seg" data-speed="1">1</button>
-          <button class="seg" data-speed="10">10</button>
-          <button class="seg" data-speed="100">100</button>
-          <span class="seg-unit">gen/s</span>
+        <div class="param-group">Run settings</div>
+        <div class="row">
+          <div class="ctrl">
+            <label>
+              <span class="name">Max Generations <span class="q" data-tip="Number of research acts the simulation runs. More generations produce a larger, more developed knowledge forest">?</span></span></label>
+            <input type="number" id="gens" min="10" max="20000" step="10" value="500">
+          </div>
+          <div class="ctrl">
+            <label>
+              <span class="name">Seed <span class="q" data-tip="Random seed for reproducibility. The same seed always produces the same run. Set to 0 to draw a fresh random seed on every run so each simulation is unique">?</span></span></label>
+            <input type="number" id="seed" step="1" value="42">
+          </div>
         </div>
-      </div>
+        <div class="row">
+          <div class="ctrl">
+            <label>
+              <span class="name">Replication Targets <span class="q" data-tip="Which existing finding a replication re-tests: last published targets the newest finding (frontier), first published targets the oldest (foundations), random picks any living finding uniformly">?</span></span></label>
+            <select id="depth">
+              <option value="last">last (frontier)</option>
+              <option value="first" selected>first (foundations)</option>
+              <option value="random">random</option>
+            </select>
+          </div>
+          <div class="ctrl">
+            <label>
+              <span class="name">Extension Targets <span class="q" data-tip="Which existing finding a new extension builds upon: last published attaches to the newest finding (frontier), first published attaches to the oldest (foundations), random picks any living finding uniformly">?</span></span></label>
+            <select id="anchor">
+              <option value="last" selected>last (frontier)</option>
+              <option value="first">first (foundations)</option>
+              <option value="random">random</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="btns">
+          <button class="act" id="startPause" title="Start or pause the live simulation">Start</button>
+          <button class="sec" id="resetBtn" title="Reset the simulation to generation 0">Reset</button>
+          <div class="speed-toggle" id="speedToggle" title="Simulation speed">
+            <div class="seg-track" id="segTrack"></div>
+            <button class="seg" data-speed="1">1</button>
+            <button class="seg" data-speed="10">10</button>
+            <button class="seg" data-speed="100">100</button>
+            <span class="seg-unit">gen/s</span>
+          </div>
+        </div>
+
+      </div><!-- /params-body -->
     </div>
 
     <!-- Output -->
     <div>
       <div class="stats">
-        <div class="stat c-prec"><div class="v" id="s_prec">-</div><div class="k">True discovery rate</div></div>
+        <div class="stat c-fp"><div class="v" id="s_fp">-</div><div class="k" title="Fraction of currently active findings that are false positives (wrong claims still in the literature)">FP in literature</div></div>
+        <div class="stat c-fn"><div class="v" id="s_fn">-</div><div class="k" title="Fraction of ever-published true findings that were incorrectly pruned by a false-negative replication (Type II errors)">FN pruning rate</div></div>
         <div class="stat c-tp"><div class="v" id="s_tp">-</div><div class="k">Valid findings</div></div>
         <div class="stat c-live"><div class="v" id="s_living">-</div><div class="k">Active findings</div></div>
         <div class="stat c-root"><div class="v" id="s_roots">-</div><div class="k">Living paradigms</div></div>
         <div class="stat c-depth"><div class="v" id="s_depth">-</div><div class="k">Longest branch</div></div>
-        <div class="stat c-prun"><div class="v" id="s_prun">-</div><div class="k" title="Share of pruned findings that were true positives (pruned by a failed replication of a valid result)">Valid pruned rate</div></div>
       </div>
       <div class="activity-row">
         <div class="act-pill pill-innov">
@@ -576,7 +631,14 @@ function simulate(p){
   const parent = [], truth = [], alive = [], born = [], depthA = [], replicated = [], filedAway = [], repPassed = [];
   const timeline = [];
 
-  const testPositive = isTrue => rand() < (isTrue ? p.alpha : p.beta);
+  // testPositive(isTrue, isReplication)
+  // alpha = FP rate (P(positive | false)); beta = FN rate (P(negative | true))
+  // P(positive | true)  = 1 - beta;  P(positive | false) = alpha
+  const testPositive = (isTrue, isRep) => {
+    const a = isRep ? p.ar : p.ao;
+    const b = isRep ? p.br : p.bo;
+    return rand() < (isTrue ? (1 - b) : a);
+  };
 
   function prune(idx){
     const stack = [idx];
@@ -636,7 +698,7 @@ function simulate(p){
           for(const i of repCandidates) if(born[i] > born[target]) target = i;
         }
         replicated[target] = true;
-        const passed = testPositive(truth[target]);
+        const passed = testPositive(truth[target], true);
         repPassed[target] = passed;
         if(!passed){ if(rand() >= p.f) prune(target); else filedAway[target] = true; }
       }
@@ -644,11 +706,11 @@ function simulate(p){
       const isRoot = living.length===0 || rand() < p.pnr;
       if(isRoot){
         const isTrue = rand() < p.pnext;
-        if(testPositive(isTrue)) addNode(-1, isTrue, g);
+        if(testPositive(isTrue, false)) addNode(-1, isTrue, g);
       } else {
         const anchor = pickAnchor(living);
         const isTrue = truth[anchor] ? (rand() < p.pnext) : false;
-        if(testPositive(isTrue)) addNode(anchor, isTrue, g);
+        if(testPositive(isTrue, false)) addNode(anchor, isTrue, g);
       }
     }
     const pr = precisionNow();
@@ -724,15 +786,17 @@ let treeDragStart = null, treeDragMoved = false;
 let treeRenderParams = null; // set by drawTree; used for hit-testing
 let selectedNodeId = null;
 
-const sliders = [['r','v_r'],['pnext','v_pnext'],['alpha','v_alpha'],['beta','v_beta'],['f','v_f'],['pnr','v_pnr']];
+const sliders = [['r','v_r'],['pnext','v_pnext'],['ao','v_ao'],['bo','v_bo'],['ar','v_ar'],['br','v_br'],['f','v_f'],['pnr','v_pnr']];
 sliders.forEach(([id,vid])=> $(id).addEventListener('input', ()=> $(vid).textContent=(+$(id).value).toFixed(2)));
 
 function readParams(){
   let seed = (+$('seed').value)|0;
   if(seed === 0) seed = (Math.floor(Math.random()*2147483646)+1);
   return {
-    r:+$('r').value, pnext:+$('pnext').value, alpha:+$('alpha').value,
-    beta:+$('beta').value, f:+$('f').value, pnr:+$('pnr').value,
+    r:+$('r').value, pnext:+$('pnext').value,
+    ao:+$('ao').value, bo:+$('bo').value,   // original studies: FP rate, FN rate
+    ar:+$('ar').value, br:+$('br').value,   // replications: FP rate, FN rate
+    f:+$('f').value, pnr:+$('pnr').value,
     gens:Math.max(10, Math.min(20000, +$('gens').value|0)),
     seed, depth:$('depth').value, anchor:$('anchor').value
   };
@@ -896,11 +960,12 @@ function drawTree(progress){
   const {nodes, nodeById, minX, maxX, minY, maxY, maxBorn} = treeLayout;
   const pad=28;
   const bw=Math.max(1,maxX-minX), bh=Math.max(1,maxY-minY);
-  const scale=Math.min((w-2*pad)/bw, (h-2*pad)/bh);
-  const offX=(w-bw*scale)/2 - minX*scale;
-  const offY=(h-bh*scale)/2 - minY*scale;
-  const SX=x=>offX+x*scale, SY=y=>offY+y*scale;
-  treeRenderParams = { offX, offY, scale };
+  // Use independent x/y scales so the tree fills the canvas in both dimensions
+  const scaleX=(w-2*pad)/bw, scaleY=(h-2*pad)/bh;
+  const offX=pad - minX*scaleX;
+  const offY=pad - minY*scaleY;
+  const SX=x=>offX+x*scaleX, SY=y=>offY+y*scaleY;
+  treeRenderParams = { offX, offY, scaleX, scaleY };
 
   ctx.save();
   ctx.translate(treePanX, treePanY);
@@ -979,16 +1044,14 @@ function drawTree(progress){
 /* ---- Tree hit-testing and manual interaction ---- */
 function findNodeAtScreenPos(ex, ey){
   if(!treeLayout || !treeRenderParams) return null;
-  const {offX, offY, scale} = treeRenderParams;
+  const {offX, offY, scaleX, scaleY} = treeRenderParams;
   const {nodes} = treeLayout;
-  // compute node position in screen (canvas-element) pixels and compare there,
-  // so the hit radius stays constant regardless of zoom level
-  const HIT2 = 16 * 16; // squared hit radius in screen px
+  const HIT2 = 18 * 18; // slightly larger hit area (good for touch too)
   let best = null, bestD = HIT2;
   for(const n of nodes){
-    if(n.failedExt) continue; // phantom nodes are not selectable
-    const sx = (offX + n._x * scale) * treeZoom + treePanX;
-    const sy = (offY + n._y * scale) * treeZoom + treePanY;
+    if(n.failedExt) continue;
+    const sx = (offX + n._x * scaleX) * treeZoom + treePanX;
+    const sy = (offY + n._y * scaleY) * treeZoom + treePanY;
     const d2 = (ex - sx) ** 2 + (ey - sy) ** 2;
     if(d2 < bestD){ bestD = d2; best = n; }
   }
@@ -1029,13 +1092,12 @@ function manualInnovation(){
   if(!liveState) return;
   const s = liveState;
   const pnext = +$('pnext').value;
-  const alpha = +$('alpha').value, beta = +$('beta').value;
-  const testPos = isTrue => s.rand() < (isTrue ? alpha : beta);
+  const ao = +$('ao').value, bo = +$('bo').value;
+  const testPos = isTrue => s.rand() < (isTrue ? (1 - bo) : ao);
   const isTrue = s.rand() < pnext;
   if(testPos(isTrue)){
     liveAddNode(s, -1, isTrue, s.gen); s.counters.innovations++;
   } else {
-    // always show something: phantom root dot (no parent, no line)
     liveAddPhantom(s, -1, isTrue, s.gen);
   }
   s.gen++;
@@ -1046,9 +1108,9 @@ function manualReplication(nodeId){
   if(!liveState) return;
   const s = liveState;
   if(!s.alive[nodeId] || s.replicated[nodeId]) return;
-  const alpha = +$('alpha').value, beta = +$('beta').value;
+  const ar = +$('ar').value, br = +$('br').value;
   const f = +$('f').value;
-  const testPos = isTrue => s.rand() < (isTrue ? alpha : beta);
+  const testPos = isTrue => s.rand() < (isTrue ? (1 - br) : ar);
   s.replicated[nodeId] = true; s.counters.replications++;
   const passed = testPos(s.truth[nodeId]);
   s.repPassed[nodeId] = passed;
@@ -1062,13 +1124,12 @@ function manualExtension(nodeId){
   const s = liveState;
   if(!s.alive[nodeId]) return;
   const pnext = +$('pnext').value;
-  const alpha = +$('alpha').value, beta = +$('beta').value;
-  const testPos = isTrue => s.rand() < (isTrue ? alpha : beta);
+  const ao = +$('ao').value, bo = +$('bo').value;
+  const testPos = isTrue => s.rand() < (isTrue ? (1 - bo) : ao);
   const isTrue = s.truth[nodeId] ? (s.rand() < pnext) : false;
   if(testPos(isTrue)){
     liveAddNode(s, nodeId, isTrue, s.gen); s.counters.extensions++;
   } else {
-    // always add a new phantom for manual clicks so something is always visible
     liveAddPhantom(s, nodeId, isTrue, s.gen);
     s.phantomSlot.set(nodeId, s.parent.length-1);
   }
@@ -1104,7 +1165,7 @@ function drawSweepChart(progress){
   ctx.textAlign='center';
   ctx.font='11px sans-serif';
   ctx.fillStyle=T.muted;
-  ctx.fillText('True discovery rate', 0, 0);
+  ctx.fillText('Precision (1 - FP rate)', 0, 0);
   ctx.restore();
   // x baseline
   ctx.beginPath(); ctx.moveTo(ix,iy+ih); ctx.lineTo(ix+iw,iy+ih); ctx.stroke();
@@ -1392,14 +1453,12 @@ function draw(progress){
 
 /* ====================== Stats update ====================== */
 function updateStats(res){
-  $('s_prec').textContent   = res && res.living ? res.precision.toFixed(2) : '-';
+  $('s_fp').textContent     = res && res.living ? Math.round(100 * res.fpRate) + '%' : '-';
+  $('s_fn').textContent     = res ? Math.round(100 * res.fnRate) + '%' : '-';
   $('s_living').textContent = res ? res.living : '-';
   $('s_tp').textContent     = res ? res.tp : '-';
   $('s_roots').textContent  = res ? res.roots : '-';
   $('s_depth').textContent  = res && res.living ? res.maxBranchDepth : '-';
-  $('s_prun').textContent   = res && res.totalPruned > 0
-    ? Math.round(100 * res.prunedTp / res.totalPruned) + '%'
-    : (res ? '0%' : '-');
   if(liveState){
     const maxGens = Math.max(10, Math.min(20000, +$('gens').value|0));
     $('s_innov').textContent = liveState.counters.innovations;
@@ -1490,10 +1549,14 @@ function liveStep(n){
     if(s.gen >= maxGens) break;
     // read current params each step so sliders take effect immediately
     const r=+$('r').value, pnext=+$('pnext').value;
-    const alpha=+$('alpha').value, beta=+$('beta').value;
+    const ao=+$('ao').value, bo=+$('bo').value;
+    const ar=+$('ar').value, br=+$('br').value;
     const f=+$('f').value, pnr=+$('pnr').value;
     const depth=$('depth').value, anchor=$('anchor').value;
-    const testPos = isTrue => s.rand() < (isTrue ? alpha : beta);
+    const testPos = (isTrue, isRep) => {
+      const a = isRep ? ar : ao, b = isRep ? br : bo;
+      return s.rand() < (isTrue ? (1 - b) : a);
+    };
     const living=liveLiving(s);
     const doRep=living.length>0 && s.rand()<r;
     const candidates=living.filter(i=>!s.replicated[i]);
@@ -1503,7 +1566,7 @@ function liveStep(n){
       else if(depth==='first'){ target=candidates[0]; for(const i of candidates) if(s.born[i]<s.born[target]) target=i; }
       else { target=candidates[0]; for(const i of candidates) if(s.born[i]>s.born[target]) target=i; }
       s.replicated[target]=true; s.counters.replications++;
-      const passed=testPos(s.truth[target]);
+      const passed=testPos(s.truth[target], true);
       s.repPassed[target]=passed;
       if(!passed){ if(s.rand()>=f) livePrune(s,target); else s.filedAway[target]=true; }
     } else {
@@ -1511,11 +1574,11 @@ function liveStep(n){
       const isRoot=living.length===0 || s.rand()<pnr;
       if(isRoot){
         const isTrue=s.rand()<pnext;
-        if(testPos(isTrue)){ liveAddNode(s,-1,isTrue,s.gen); s.counters.innovations++; }
+        if(testPos(isTrue, false)){ liveAddNode(s,-1,isTrue,s.gen); s.counters.innovations++; }
       } else {
         const anch=livePickAnchor(s,living,anchor);
         const isTrue=s.truth[anch] ? (s.rand()<pnext) : false;
-        if(testPos(isTrue)){
+        if(testPos(isTrue, false)){
           liveAddNode(s,anch,isTrue,s.gen); s.counters.extensions++;
         } else {
           // failed extension: add/refresh one phantom per parent to show the attempt
@@ -1545,14 +1608,16 @@ function liveSnapshot(){
   const live=[]; for(let i=0;i<n;i++) if(s.alive[i]) live.push(i);
   let tp=0; for(const i of live) if(s.truth[i]) tp++;
   let prunedTp=0, totalPruned=0;
-  // exclude phantom failed-extension nodes from pruning stats
   for(let i=0;i<n;i++) if(!s.alive[i] && !s.failedExt[i]){ totalPruned++; if(s.truth[i]) prunedTp++; }
   const roots=s.parent.filter((p,i)=>p<0&&s.alive[i]).length;
   const maxBranchDepth=live.length ? Math.max(...live.map(i=>s.depthA[i])) : 0;
   const maxGens=Math.max(10,Math.min(20000,+$('gens').value|0));
+  const fp = live.length - tp;
+  const fpRate = live.length > 0 ? fp / live.length : 0;           // FP in literature
+  const fnRate = (tp + prunedTp) > 0 ? prunedTp / (tp + prunedTp) : 0; // pruned TP / all-TP-ever-published
   return {
     nodes, precision:live.length?tp/live.length:0,
-    living:live.length, tp, roots, maxBranchDepth,
+    living:live.length, tp, fp, fpRate, fnRate, roots, maxBranchDepth,
     prunedTp, totalPruned,
     timeline:s.timeline, gens:maxGens,
     maxBorn:s.born.length?Math.max(...s.born):1
@@ -1810,6 +1875,17 @@ document.addEventListener('keydown', e=>{
   if(e.key==='Enter' || e.key==='r' || e.key==='R') $('startPause').click();
   if(e.key==='Escape') { if(isRunning) pauseLive(); }
 });
+
+/* ---- Collapsible parameters panel (mobile) ---- */
+(function(){
+  const toggle = $('paramsToggle');
+  const body   = $('paramsBody');
+  if(!toggle || !body) return;
+  toggle.addEventListener('click', ()=>{
+    const collapsed = body.classList.toggle('collapsed');
+    toggle.classList.toggle('open', !collapsed);
+  });
+})();
 
 /* init — start immediately */
 setToggleIcon();
