@@ -214,6 +214,27 @@
   .tree-btn:disabled{opacity:0.35; cursor:default}
   .tree-sel-label{font-size:11px; color:var(--muted); font-family:ui-monospace,"SFMono-Regular",monospace; margin-left:2px}
 
+  /* ---- Mobile / touch optimizations ---- */
+  @media(max-width:640px){
+    .topbar{padding:11px 14px}
+    .brand{font-size:13px}
+    .hero{padding:26px 16px 18px}
+    .hero h1{font-size:28px}
+    .hero .sub{font-size:14px}
+    .view{padding:14px 10px}
+    .wip-ribbon{display:none}
+    .stat .v{font-size:22px}
+    .stat{padding:13px 10px}
+    .tree-btn{padding:9px 14px; font-size:13px}
+    .tree-actions{gap:8px; margin:10px 4px 4px}
+    .tree-sel-label{display:block; margin:4px 0 0; width:100%}
+    /* tooltips: show below the ? bubble instead of above to stay in viewport */
+    .ctrl label .q::after{
+      bottom:auto; top:calc(100% + 7px);
+      left:0; right:auto; transform:none; max-width:min(240px, 80vw);
+    }
+  }
+
   .about{max-width:900px}
   .about h2{font-family:var(--serif); font-size:20px; color:var(--accent); margin-top:26px; border-bottom:1px solid var(--border); padding-bottom:7px}
   .about p{color:var(--txt)}
@@ -398,7 +419,7 @@
             <button class="tree-btn" id="btn-innovate">New Innovation</button>
             <button class="tree-btn" id="btn-replicate" disabled>Replicate</button>
             <button class="tree-btn" id="btn-extend" disabled>Extend</button>
-            <span class="tree-sel-label" id="tree-sel-label">Click a node to select it</span>
+            <span class="tree-sel-label" id="tree-sel-label">Tap or click a node to select it</span>
           </div>
         </div>
       </div>
@@ -735,9 +756,12 @@ function fitCanvas(cv){
   if(cssW <= 0) return null;
   const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
   const fsReserve = (inFS && cv.id === 'tree') ? 120 : 56; // extra space for legend + action buttons
+  // On mobile, reserve more space below the canvas so buttons remain visible
+  const isMobile = window.innerWidth < 640;
+  const belowReserve = (cv.id === 'tree') ? (isMobile ? 180 : 90) : (isMobile ? 60 : 80);
   const cssH = inFS
     ? Math.max(400, window.innerHeight - fsReserve)
-    : (() => { const rect = cv.getBoundingClientRect(); return Math.max(240, Math.min(window.innerHeight - rect.top - 80, 700)); })();
+    : (() => { const rect = cv.getBoundingClientRect(); return Math.max(isMobile ? 180 : 240, Math.min(window.innerHeight - rect.top - belowReserve, isMobile ? 420 : 700)); })();
   cv.style.height = cssH + 'px';
   cv.width = Math.round(cssW * dpr);
   cv.height = Math.round(cssH * dpr);
@@ -978,7 +1002,7 @@ function updateTreeActions(){
   if(selectedNodeId === null || !liveState){
     repBtn.disabled = true;
     extBtn.disabled = true;
-    lbl.textContent = selectedNodeId === null ? 'Click a node to select it' : '';
+    lbl.textContent = selectedNodeId === null ? 'Tap or click a node to select it' : '';
     return;
   }
   const s = liveState;
@@ -1708,6 +1732,67 @@ window.addEventListener('resize', ()=>{ if(lastResult) draw(1); });
     cv.style.cursor = node ? 'pointer' : 'grab';
   });
   cv.addEventListener('mouseleave', ()=>{ if(!treeDragging) cv.style.cursor = ''; });
+
+  // ---- Touch: single-finger pan + tap-to-select; two-finger pinch-to-zoom ----
+  let touchPinchStart = null;
+
+  cv.addEventListener('touchstart', e=>{
+    e.preventDefault();
+    if(e.touches.length === 1){
+      treeDragging = true; treeDragMoved = false;
+      treeDragStart = {x: e.touches[0].clientX, y: e.touches[0].clientY};
+      treeDragLast  = {x: e.touches[0].clientX, y: e.touches[0].clientY};
+      touchPinchStart = null;
+    } else if(e.touches.length === 2){
+      treeDragging = false;
+      const t0 = e.touches[0], t1 = e.touches[1];
+      touchPinchStart = {
+        dist: Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY),
+        zoom: treeZoom,
+        midX: (t0.clientX + t1.clientX) / 2,
+        midY: (t0.clientY + t1.clientY) / 2
+      };
+    }
+  }, {passive: false});
+
+  cv.addEventListener('touchmove', e=>{
+    e.preventDefault();
+    if(e.touches.length === 1 && treeDragging){
+      const dx = e.touches[0].clientX - treeDragStart.x, dy = e.touches[0].clientY - treeDragStart.y;
+      if(Math.abs(dx) > 4 || Math.abs(dy) > 4) treeDragMoved = true;
+      treePanX += e.touches[0].clientX - treeDragLast.x;
+      treePanY += e.touches[0].clientY - treeDragLast.y;
+      treeDragLast = {x: e.touches[0].clientX, y: e.touches[0].clientY};
+      if(lastResult) drawTree(1);
+    } else if(e.touches.length === 2 && touchPinchStart){
+      const t0 = e.touches[0], t1 = e.touches[1];
+      const dist = Math.hypot(t1.clientX - t0.clientX, t1.clientY - t0.clientY);
+      const newZoom = Math.max(0.5, Math.min(20, touchPinchStart.zoom * (dist / touchPinchStart.dist)));
+      const rect = cv.getBoundingClientRect();
+      const cx = touchPinchStart.midX - rect.left, cy = touchPinchStart.midY - rect.top;
+      const scale = newZoom / treeZoom;
+      treePanX = cx - scale * (cx - treePanX);
+      treePanY = cy - scale * (cy - treePanY);
+      treeZoom = newZoom;
+      if(lastResult) drawTree(1);
+    }
+  }, {passive: false});
+
+  cv.addEventListener('touchend', e=>{
+    if(!treeDragging){ touchPinchStart = null; return; }
+    treeDragging = false;
+    if(!treeDragMoved && e.changedTouches.length === 1){
+      const rect = cv.getBoundingClientRect();
+      const ex = e.changedTouches[0].clientX - rect.left;
+      const ey = e.changedTouches[0].clientY - rect.top;
+      const node = findNodeAtScreenPos(ex, ey);
+      selectedNodeId = (node && node.id !== selectedNodeId) ? node.id : null;
+      updateTreeActions(); if(lastResult) drawTree(1);
+    }
+    treeDragLast = null; touchPinchStart = null;
+  }, {passive: false});
+
+  cv.addEventListener('touchcancel', ()=>{ treeDragging = false; treeDragLast = null; touchPinchStart = null; });
 })();
 
 // tree action buttons
