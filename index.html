@@ -46,12 +46,11 @@
   }
   .toggle:hover{background:rgba(255,255,255,.16)}
 
-  /* hero */
-  .hero{background:var(--surface); text-align:center; padding:46px 20px 30px}
-  .hero .mark{display:flex; justify-content:center; margin-bottom:14px; color:var(--accent)}
-  .hero h1{font-family:var(--serif); color:var(--accent); font-size:46px; margin:0; font-weight:700; letter-spacing:.01em}
-  .hero .rule{width:60px; height:2px; background:var(--border); margin:18px auto}
-  .hero .sub{color:var(--muted); font-size:17px; margin:0; font-weight:500}
+  /* hero -- compact single-line */
+  .hero{background:var(--surface); padding:12px 28px 10px; border-bottom:1px solid var(--border)}
+  .hero-inner{display:flex; align-items:center; gap:14px}
+  .hero .mark{display:flex; align-items:center; color:var(--accent); flex-shrink:0}
+  .hero h1{font-family:var(--serif); color:var(--accent); font-size:22px; margin:0; font-weight:700; letter-spacing:.01em}
 
   .view{padding:24px 28px; max-width:1320px; margin:0 auto}
   .layout{display:grid; grid-template-columns:350px 1fr; gap:20px}
@@ -146,12 +145,12 @@
     box-shadow:0 2px 10px rgba(0,0,0,.28);
   }
 
-  .stats{display:grid; grid-template-columns:repeat(6,1fr); gap:14px; margin-bottom:10px}
-  @media(max-width:1200px){.stats{grid-template-columns:repeat(3,1fr)}}
+  .stats{display:grid; grid-template-columns:repeat(7,1fr); gap:12px; margin-bottom:10px}
+  @media(max-width:1200px){.stats{grid-template-columns:repeat(4,1fr)}}
   @media(max-width:600px){.stats{grid-template-columns:repeat(2,1fr)}}
   .stat{position:relative; background:var(--panel); border:1px solid var(--border); border-radius:10px;
-        padding:18px 16px; box-shadow:0 1px 4px var(--shadow); text-align:center; overflow:hidden}
-  .stat::before{content:""; position:absolute; top:0; left:0; right:0; height:3px; background:var(--accent); opacity:.85}
+        padding:18px 16px; box-shadow:0 1px 4px var(--shadow); text-align:center; overflow:visible}
+  .stat::before{content:""; position:absolute; top:0; left:0; right:0; height:3px; background:var(--accent); opacity:.85; border-radius:10px 10px 0 0}
   .stat .v{font-size:30px; font-weight:750; font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace; letter-spacing:-.01em}
   .stat .k{color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.09em; margin-top:4px; font-weight:600}
   .stat.c-fp  .v{color:var(--bad)}        .stat.c-fp::before{background:var(--bad)}
@@ -160,6 +159,7 @@
   .stat.c-tp .v{color:var(--good)}         .stat.c-tp::before{background:var(--good)}
   .stat.c-root .v{color:var(--amber)}      .stat.c-root::before{background:var(--amber)}
   .stat.c-depth .v{color:var(--depth)}     .stat.c-depth::before{background:var(--depth)}
+  .stat.c-rep::before{background:var(--rep-ring)}
 
   /* activity pill row */
   .activity-row{display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:18px}
@@ -249,9 +249,8 @@
   @media(max-width:640px){
     .topbar{padding:11px 14px}
     .brand{font-size:13px}
-    .hero{padding:26px 16px 18px}
-    .hero h1{font-size:28px}
-    .hero .sub{font-size:14px}
+    .hero{padding:8px 14px}
+    .hero h1{font-size:16px}
     .view{padding:14px 10px}
     .wip-ribbon{display:none}
     .stat .v{font-size:22px}
@@ -274,6 +273,45 @@
   .about th,.about td{border:1px solid var(--border); padding:8px 11px; text-align:left; font-size:13px}
   .about th{background:var(--panel2)}
   .pill{display:inline-block; background:var(--accent-soft); border:1px solid var(--border); border-radius:999px; padding:2px 11px; font-size:12px; color:var(--accent); margin-right:6px; font-weight:600}
+  /* toggle switch for cascade resistance */
+  .chk-row{display:flex;align-items:center;gap:8px;padding:5px 0}
+  .chk-lbl{display:flex;align-items:center;gap:10px;font-size:12.5px;cursor:pointer;color:var(--txt)}
+  .chk-lbl .sw{position:relative;display:inline-block;width:34px;height:18px;flex-shrink:0}
+  .chk-lbl .sw input{opacity:0;width:0;height:0;position:absolute}
+  .chk-lbl .sw .track{position:absolute;inset:0;border-radius:18px;background:var(--border);transition:background .18s;cursor:pointer}
+  .chk-lbl .sw input:checked + .track{background:var(--accent)}
+  .chk-lbl .sw .track::after{content:'';position:absolute;width:12px;height:12px;border-radius:50%;background:#fff;top:3px;left:3px;transition:transform .18s}
+  .chk-lbl .sw input:checked + .track::after{transform:translateX(16px)}
+
+  /* stat tile with dual value (valid / invalid) */
+  .stat .v-row{display:flex;align-items:baseline;justify-content:center;gap:5px}
+  .stat .v-row .v{font-size:24px}
+  .stat .v-sep{font-size:16px;color:var(--muted);font-weight:400}
+
+  /* fixed-aspect sweep charts */
+  .sweep-canvas-wrap canvas{display:block}
+
+  /* citation box */
+  .cite-box{background:var(--panel2);border:1px solid var(--border);border-radius:8px;padding:13px 16px 13px 16px;margin-bottom:20px;position:relative}
+  .cite-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.12em;color:var(--muted);margin-bottom:6px}
+  .cite-text{font-size:13px;line-height:1.55;color:var(--txt)}
+  .cite-copy{position:absolute;top:10px;right:10px;font-size:11px;padding:3px 11px;border-radius:5px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--border);cursor:pointer;transition:background .15s}
+  .cite-copy:hover{background:var(--accent);color:#fff}
+
+  /* generic info-bubble tooltip (KPI tiles, toggles) -- opens downward */
+  .q{position:relative; display:inline-flex; align-items:center; justify-content:center;
+     width:15px; height:15px; border-radius:50%; background:var(--panel2); border:1px solid var(--border);
+     color:var(--muted); font-size:10px; font-weight:700; cursor:help; flex-shrink:0; vertical-align:middle}
+  .q::after{
+     content:attr(data-tip); position:absolute; top:calc(100% + 7px); left:50%; transform:translateX(-50%);
+     width:220px; background:#1f2328; color:#e6edf3; border-radius:8px; padding:8px 11px; font-size:12px;
+     font-weight:400; font-family:-apple-system,sans-serif; text-transform:none; letter-spacing:0; line-height:1.5;
+     white-space:normal; text-align:left; pointer-events:none; opacity:0; transition:opacity .15s; z-index:200;
+     box-shadow:0 4px 16px rgba(0,0,0,.35);
+  }
+  body.dark .q::after{background:#e6edf3; color:#1f2328}
+  .q:hover::after{opacity:1}
+  .stat .k{display:inline-flex; align-items:center; gap:5px; justify-content:center}
 </style>
 </head>
 <body>
@@ -284,23 +322,22 @@
 </div>
 
 <div class="hero">
-  <div class="mark" aria-hidden="true">
-    <svg width="74" height="60" viewBox="0 0 100 80" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
-      <!-- root with two extensions; left branch has 2, right branch has 3 -->
-      <line x1="50" y1="74" x2="32" y2="48"/><line x1="50" y1="74" x2="68" y2="48"/>
-      <line x1="32" y1="48" x2="20" y2="22"/><line x1="32" y1="48" x2="40" y2="22"/>
-      <line x1="68" y1="48" x2="58" y2="22"/><line x1="68" y1="48" x2="70" y2="22"/><line x1="68" y1="48" x2="82" y2="22"/>
-      <g fill="currentColor" stroke="none">
-        <circle cx="50" cy="74" r="5"/>
-        <circle cx="32" cy="48" r="4"/><circle cx="68" cy="48" r="4"/>
-        <circle cx="20" cy="22" r="3.4"/><circle cx="40" cy="22" r="3.4"/>
-        <circle cx="58" cy="22" r="3.4"/><circle cx="70" cy="22" r="3.4"/><circle cx="82" cy="22" r="3.4"/>
-      </g>
-    </svg>
+  <div class="hero-inner">
+    <div class="mark" aria-hidden="true">
+      <svg width="36" height="30" viewBox="0 0 100 80" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+        <line x1="50" y1="74" x2="32" y2="48"/><line x1="50" y1="74" x2="68" y2="48"/>
+        <line x1="32" y1="48" x2="20" y2="22"/><line x1="32" y1="48" x2="40" y2="22"/>
+        <line x1="68" y1="48" x2="58" y2="22"/><line x1="68" y1="48" x2="70" y2="22"/><line x1="68" y1="48" x2="82" y2="22"/>
+        <g fill="currentColor" stroke="none">
+          <circle cx="50" cy="74" r="5"/>
+          <circle cx="32" cy="48" r="4"/><circle cx="68" cy="48" r="4"/>
+          <circle cx="20" cy="22" r="3.4"/><circle cx="40" cy="22" r="3.4"/>
+          <circle cx="58" cy="22" r="3.4"/><circle cx="70" cy="22" r="3.4"/><circle cx="82" cy="22" r="3.4"/>
+        </g>
+      </svg>
+    </div>
+    <h1>Evolution of Research</h1>
   </div>
-  <h1>Evolution of Research</h1>
-  <div class="rule"></div>
-  <p class="sub">Optimal Replication Rate Simulator</p>
 </div>
 
 <!-- ============================ SIMULATION VIEW ============================ -->
@@ -326,6 +363,12 @@
             <span class="val" id="v_pnr">0.50</span></label>
           <input type="range" id="pnr" min="0" max="1" step="0.01" value="0.50">
         </div>
+        <div class="ctrl">
+          <label>
+            <span class="name">File-drawer Proportion <span class="q" data-tip="Probability that a FAILED original study (innovation or extension that tested negative) is never recorded, not even as a phantom dot. At 0 all failed attempts show as faded dots; at 1 they are silently discarded.">?</span></span>
+            <span class="val" id="v_fo">0.80</span></label>
+          <input type="range" id="fo" min="0" max="1" step="0.01" value="0.80">
+        </div>
         <div class="row">
           <div class="ctrl">
             <label>
@@ -340,6 +383,26 @@
             <input type="range" id="bo" min="0" max="1" step="0.01" value="0.50">
           </div>
         </div>
+        <div class="row">
+          <div class="ctrl">
+            <label>
+              <span class="name">Branch Selection <span class="q" data-tip="Which paradigm branch to target: random picks any branch uniformly; shortest/longest picks the branch with fewest/most living nodes">?</span></span></label>
+            <select id="ext_bs">
+              <option value="random" selected>random</option>
+              <option value="shortest">shortest branch</option>
+              <option value="longest">longest branch</option>
+            </select>
+          </div>
+          <div class="ctrl">
+            <label>
+              <span class="name">Branch Position <span class="q" data-tip="Which node within the selected branch: oldest targets the earliest-born node, newest the most recent, random picks uniformly">?</span></span></label>
+            <select id="ext_bp">
+              <option value="newest" selected>newest (frontier)</option>
+              <option value="oldest">oldest (foundations)</option>
+              <option value="random">random</option>
+            </select>
+          </div>
+        </div>
 
         <div class="param-group">Replications</div>
         <div class="ctrl">
@@ -350,9 +413,22 @@
         </div>
         <div class="ctrl">
           <label>
-            <span class="name">File-Drawer Rate <span class="q" data-tip="Probability that a FAILED replication (negative result) is suppressed and never published. Does not affect passed replications: positive replication results are always published. f = 1 means all failed replications are silently shelved.">?</span></span>
-            <span class="val" id="v_f">0.50</span></label>
-          <input type="range" id="f" min="0" max="1" step="0.01" value="0.50">
+            <span class="name">File-drawer Proportion <span class="q" data-tip="Probability that a FAILED replication (negative result) is suppressed and never published. Does not affect passed replications.">?</span></span>
+            <span class="val" id="v_f">0.80</span></label>
+          <input type="range" id="f" min="0" max="1" step="0.01" value="0.80">
+        </div>
+        <div class="ctrl">
+          <label>
+            <span class="name">Pruning Resistance <span class="q" data-tip="Even when a failed replication is published, this probability allows the branch to resist pruning. 0 = always pruned (current behaviour); 1 = never pruned.">?</span></span>
+            <span class="val" id="v_pr">0.00</span></label>
+          <input type="range" id="pr" min="0" max="1" step="0.01" value="0.00">
+        </div>
+        <div class="chk-row">
+          <label class="chk-lbl">
+            <span class="sw"><input type="checkbox" id="pr_cascade"><span class="track"></span></span>
+            <span>Cascade resistance</span>
+          </label>
+          <span class="q" data-tip="If ON, pruning resistance grows by 5% for each living finding built on the target node (its descendants), capped at 100%. Models how established paradigms become progressively harder to retract.">?</span>
         </div>
         <div class="row">
           <div class="ctrl">
@@ -368,38 +444,38 @@
             <input type="range" id="br" min="0" max="1" step="0.01" value="0.20">
           </div>
         </div>
+        <div class="row">
+          <div class="ctrl">
+            <label>
+              <span class="name">Branch Selection <span class="q" data-tip="Which paradigm branch to target: random picks any branch uniformly; shortest/longest picks the branch with fewest/most living nodes">?</span></span></label>
+            <select id="rep_bs">
+              <option value="random">random</option>
+              <option value="shortest">shortest branch</option>
+              <option value="longest" selected>longest branch</option>
+            </select>
+          </div>
+          <div class="ctrl">
+            <label>
+              <span class="name">Branch Position <span class="q" data-tip="Which node within the selected branch: oldest targets the earliest-born node, newest the most recent, random picks uniformly">?</span></span></label>
+            <select id="rep_bp">
+              <option value="oldest" selected>oldest (foundations)</option>
+              <option value="newest">newest (frontier)</option>
+              <option value="random">random</option>
+            </select>
+          </div>
+        </div>
 
         <div class="param-group">Run settings</div>
         <div class="row">
           <div class="ctrl">
             <label>
               <span class="name">Max Generations <span class="q" data-tip="Number of research acts the simulation runs. More generations produce a larger, more developed knowledge forest">?</span></span></label>
-            <input type="number" id="gens" min="10" max="20000" step="10" value="500">
+            <input type="number" id="gens" min="10" max="20000" step="10" value="1000">
           </div>
           <div class="ctrl">
             <label>
               <span class="name">Seed <span class="q" data-tip="Random seed for reproducibility. The same seed always produces the same run. Set to 0 to draw a fresh random seed on every run so each simulation is unique">?</span></span></label>
             <input type="number" id="seed" step="1" value="42">
-          </div>
-        </div>
-        <div class="row">
-          <div class="ctrl">
-            <label>
-              <span class="name">Replication Targets <span class="q" data-tip="Which existing finding a replication re-tests: last published targets the newest finding (frontier), first published targets the oldest (foundations), random picks any living finding uniformly">?</span></span></label>
-            <select id="depth">
-              <option value="last">last (frontier)</option>
-              <option value="first" selected>first (foundations)</option>
-              <option value="random">random</option>
-            </select>
-          </div>
-          <div class="ctrl">
-            <label>
-              <span class="name">Extension Targets <span class="q" data-tip="Which existing finding a new extension builds upon: last published attaches to the newest finding (frontier), first published attaches to the oldest (foundations), random picks any living finding uniformly">?</span></span></label>
-            <select id="anchor">
-              <option value="last" selected>last (frontier)</option>
-              <option value="first">first (foundations)</option>
-              <option value="random">random</option>
-            </select>
           </div>
         </div>
 
@@ -411,6 +487,7 @@
             <button class="seg" data-speed="1">1</button>
             <button class="seg" data-speed="10">10</button>
             <button class="seg" data-speed="100">100</button>
+            <button class="seg" data-speed="1000">1000</button>
             <span class="seg-unit">gen/s</span>
           </div>
         </div>
@@ -421,12 +498,19 @@
     <!-- Output -->
     <div>
       <div class="stats">
-        <div class="stat c-fp"><div class="v" id="s_fp">-</div><div class="k" title="Fraction of currently active findings that are false positives (wrong claims still in the literature)">FP in literature</div></div>
-        <div class="stat c-fn"><div class="v" id="s_fn">-</div><div class="k" title="Fraction of ever-published true findings that were incorrectly pruned by a false-negative replication (Type II errors)">FN pruning rate</div></div>
-        <div class="stat c-tp"><div class="v" id="s_tp">-</div><div class="k">Valid findings</div></div>
-        <div class="stat c-live"><div class="v" id="s_living">-</div><div class="k">Active findings</div></div>
-        <div class="stat c-root"><div class="v" id="s_roots">-</div><div class="k">Living paradigms</div></div>
-        <div class="stat c-depth"><div class="v" id="s_depth">-</div><div class="k">Longest branch</div></div>
+        <div class="stat c-fp"><div class="v" id="s_fp">-</div><div class="k">FP in literature <span class="q" data-tip="Fraction of currently active findings that are false positives, that is, wrong claims still in the literature.">?</span></div></div>
+        <div class="stat c-fn"><div class="v" id="s_fn">-</div><div class="k">FN pruning rate <span class="q" data-tip="Fraction of all true findings ever published that were incorrectly removed by a failed replication (Type II / false-negative error).">?</span></div></div>
+        <div class="stat c-tp">
+          <div class="v-row"><div class="v" id="s_tp">-</div><div class="v-sep">/</div><div class="v" id="s_fp_count" style="color:var(--bad)">-</div></div>
+          <div class="k">Valid / Invalid <span class="q" data-tip="Active true positives (green) versus active false positives (red) still in the literature.">?</span></div>
+        </div>
+        <div class="stat c-rep">
+          <div class="v-row"><div class="v" id="s_rep_fail" style="color:var(--bad)">-</div><div class="v-sep">/</div><div class="v" id="s_rep_ok" style="color:var(--good)">-</div></div>
+          <div class="k">Repl. failed / confirmed <span class="q" data-tip="Replications that returned negative (red) versus replications that confirmed the finding (green). Failed replications may prune a branch or be filed away.">?</span></div>
+        </div>
+        <div class="stat c-live"><div class="v" id="s_living">-</div><div class="k">Active findings <span class="q" data-tip="Total number of published findings currently in the living literature (not pruned), counting both true and false positives.">?</span></div></div>
+        <div class="stat c-root"><div class="v" id="s_roots">-</div><div class="k">Living paradigms <span class="q" data-tip="Number of independent research strands (root nodes) still in the literature. Each strand is a separate line of inquiry.">?</span></div></div>
+        <div class="stat c-depth"><div class="v" id="s_depth">-</div><div class="k">Longest branch <span class="q" data-tip="Depth of the deepest chain of surviving findings. High values mean at least one paradigm has been extended many times.">?</span></div></div>
       </div>
       <div class="activity-row">
         <div class="act-pill pill-innov">
@@ -449,7 +533,7 @@
 
       <div class="plot-tabs" id="plotTabs">
         <div class="plot-tab active" data-panel="tree">Forest of Knowledge</div>
-        <div class="plot-tab" data-panel="timeline">Precision Timeline</div>
+        <div class="plot-tab" data-panel="timeline">Timelines</div>
         <div class="plot-tab" data-panel="optimal">Optimal Replication Rate</div>
         <div class="plot-tab" data-panel="about">About</div>
       </div>
@@ -480,12 +564,14 @@
       </div>
 
       <div class="plot-panel" id="panel-timeline">
-        <p class="plot-desc">Tracks how the precision of the living literature (the share of published surviving findings that are true) evolves over successive research generations. Each dip corresponds to a false finding entering the record; recoveries follow successful replications that prune false strands.</p>
+        <p class="plot-desc">KPI values over generations. Hover over either chart to see exact values. Top chart: rates (0-100%). Bottom chart: counts.</p>
+        <div class="canvas-wrap" style="margin-bottom:8px">
+          <canvas id="tl-pct" height="200"></canvas>
+          <div class="legend" id="tl-pct-legend"></div>
+        </div>
         <div class="canvas-wrap">
-          <canvas id="timeline" height="460"></canvas>
-          <div class="legend">
-            <span><i class="dot" style="background:var(--good)"></i> precision per generation</span>
-          </div>
+          <canvas id="tl-cnt" height="200"></canvas>
+          <div class="legend" id="tl-cnt-legend"></div>
         </div>
       </div>
 
@@ -525,6 +611,11 @@
 
       <div class="plot-panel" id="panel-about">
         <div class="about">
+          <div class="cite-box">
+            <div class="cite-lbl">Recommended citation</div>
+            <div class="cite-text" id="cite-text">R&#246;seler, L. (2026). <em>An Evolutionary Model of Research</em> (Version 0.8) [Simulator]. https://lukasroeseler.github.io/research-evolution/</div>
+            <button class="cite-copy" id="cite-copy-btn">Copy</button>
+          </div>
           <h2>What this model does</h2>
           <p>
             Scientific knowledge is represented as a growing <strong>forest of findings</strong>.
@@ -562,10 +653,10 @@
           <h2>Mechanics, step by step</h2>
           <ol>
             <li><strong>Draw act.</strong> With probability <code>r</code> replicate; else pursue novelty. (If no living nodes exist yet, force novelty.)</li>
-            <li><strong>Novelty to root or extension.</strong> With probability <code>p_new_root</code> spawn a new root (<code>parentId = null</code>); its truth is drawn via <code>p_next</code>. Otherwise pick a parent among living nodes via the Extension Targets setting.</li>
+            <li><strong>Novelty to root or extension.</strong> With probability <code>p_new_root</code> spawn a new root (<code>parentId = null</code>); its truth is drawn via <code>p_next</code>. Otherwise select a branch via Branch Selection, then a node within that branch via Branch Position (Extension settings).</li>
             <li><strong>Inheritance.</strong> If the chosen base is false, the extension is necessarily false. If the base is true, the extension is true with probability <code>p_next</code>. Extensions are worthless if the base is false.</li>
-            <li><strong>Testing and publication.</strong> A claim is published only if its test reads positive: probability <code>alpha</code> if true, <code>beta</code> if false.</li>
-            <li><strong>Replication and pruning.</strong> A replication re-tests a living node chosen by the Replication Targets setting. If the re-test is <em>positive</em>, the finding is confirmed (solid blue ring) and nothing is pruned — this always enters the record. If the re-test is <em>negative</em>, it is suppressed with probability <code>f</code> (dashed blue ring, finding survives); otherwise the negative result is published and the refuted node plus all its descendants are recursively pruned (retraction cascade, grey nodes). <code>f = 1</code> therefore prevents all pruning but does not prevent positive confirmations.</li>
+            <li><strong>Testing and publication.</strong> Original studies use false-positive rate <code>alpha_o</code> and false-negative rate <code>beta_o</code>. Failed originals are silently discarded with probability <code>fo</code>; otherwise a faded phantom dot marks the attempt.</li>
+            <li><strong>Replication and pruning.</strong> A replication targets a node selected by the Branch Selection and Branch Position (Replication settings). It is tested with rates <code>alpha_r</code> and <code>beta_r</code>. If positive, the finding is confirmed (solid ring). If negative: suppressed with probability <code>f</code> (dashed ring, finding survives); otherwise published and pruning is attempted with success probability <code>1 - pruning_resistance</code>. A successful prune removes the node and all descendants recursively (retraction cascade).</li>
           </ol>
 
           <h2>Reading the phylogeny</h2>
@@ -576,21 +667,21 @@
             <span class="pill" style="color:var(--good)">green</span> true positive,
             <span class="pill" style="color:var(--bad)">red</span> false positive, and
             <span class="pill" style="color:var(--pruned)">grey</span> pruned (refuted by a published
-            replication, along with everything that depended on it).
+            replication, along with everything that depended on it). Faded dots are unpublished failed attempts.
           </p>
 
-          <h2>Modes</h2>
+          <h2>Branch Selection and Position</h2>
           <table>
-            <tr><th>Extension Targets</th><th>Behaviour</th></tr>
-            <tr><td><code>last (frontier)</code></td><td>Biased toward the most recently published nodes, normal science at the edge.</td></tr>
-            <tr><td><code>first (foundations)</code></td><td>Biased toward the oldest, shallowest nodes, building on established work.</td></tr>
-            <tr><td><code>random</code></td><td>Any living node, chosen uniformly.</td></tr>
+            <tr><th>Branch Selection</th><th>Behaviour</th></tr>
+            <tr><td><code>random</code></td><td>Any living node, chosen uniformly (ignores branch membership).</td></tr>
+            <tr><td><code>shortest branch</code></td><td>Targets the paradigm branch with fewest living nodes, then applies position within it.</td></tr>
+            <tr><td><code>longest branch</code></td><td>Targets the paradigm branch with most living nodes, then applies position within it.</td></tr>
           </table>
           <table>
-            <tr><th>Replication Targets</th><th>Behaviour</th></tr>
-            <tr><td><code>last (frontier)</code></td><td>Re-tests the most recently published living node.</td></tr>
-            <tr><td><code>first (foundations)</code></td><td>Re-tests the earliest published living node.</td></tr>
-            <tr><td><code>random</code></td><td>Re-tests any living node, chosen uniformly.</td></tr>
+            <tr><th>Branch Position</th><th>Behaviour</th></tr>
+            <tr><td><code>oldest (foundations)</code></td><td>Targets the earliest-published living node in the selected branch.</td></tr>
+            <tr><td><code>newest (frontier)</code></td><td>Targets the most recently published living node in the selected branch.</td></tr>
+            <tr><td><code>random</code></td><td>Any node in the selected branch, chosen uniformly.</td></tr>
           </table>
 
           <h2>Why an interior optimum?</h2>
@@ -659,19 +750,53 @@ function simulate(p){
     for(let i=0;i<alive.length;i++) if(alive[i]) out.push(i);
     return out;
   }
+  function getRootStatic(idx){
+    let cur=idx;
+    while(parent[cur]>=0) cur=parent[cur];
+    return cur;
+  }
+  function pickBranchStatic(candidates, strategy){
+    if(strategy==='random'||!candidates.length) return candidates;
+    const byBranch=new Map();
+    for(const i of candidates){
+      const r2=getRootStatic(i);
+      if(!byBranch.has(r2)) byBranch.set(r2,[]);
+      byBranch.get(r2).push(i);
+    }
+    if(byBranch.size<=1) return candidates;
+    const szMap=new Map();
+    for(let i=0;i<alive.length;i++){
+      if(alive[i]){ const r2=getRootStatic(i); szMap.set(r2,(szMap.get(r2)||0)+1); }
+    }
+    let best=null, bestSz=strategy==='shortest'?Infinity:-Infinity;
+    for(const [r2] of byBranch){
+      const sz=szMap.get(r2)||0;
+      if(strategy==='shortest'?sz<bestSz:sz>bestSz){bestSz=sz;best=r2;}
+    }
+    return byBranch.get(best)||candidates;
+  }
   function pickAnchor(living){
-    const n = living.length, ord = living.map(i => born[i]);
+    const extBs = p.extBs||'random';
+    const extBp = p.extBp||p.anchor||'newest';
+    const pool = pickBranchStatic(living, extBs);
+    const n = pool.length, ord = pool.map(i => born[i]);
     const mn = Math.min(...ord), mx = Math.max(...ord);
     const w = new Array(n);
+    const bp = (extBp==='last')?'newest':(extBp==='first')?'oldest':extBp;
     for(let i=0;i<n;i++){
-      if(p.anchor === 'random')       w[i] = 1;
-      else if(p.anchor === 'last')  w[i] = Math.pow(ord[i]-mn+1, 2);  // frontier: favour recent
-      else                          w[i] = Math.pow(mx-ord[i]+1, 2);  // first: favour oldest
+      if(bp==='random')  w[i]=1;
+      else if(bp==='newest') w[i]=Math.pow(ord[i]-mn+1,2);
+      else w[i]=Math.pow(mx-ord[i]+1,2);
     }
     let sum=0; for(const x of w) sum+=x;
-    let t = rand()*sum;
-    for(let i=0;i<n;i++){ t-=w[i]; if(t<=0) return living[i]; }
-    return living[n-1];
+    let t=rand()*sum;
+    for(let i=0;i<n;i++){ t-=w[i]; if(t<=0) return pool[i]; }
+    return pool[n-1];
+  }
+  function isDescOfStatic(node, anc){
+    let cur=node;
+    while(parent[cur]>=0){ cur=parent[cur]; if(cur===anc) return true; }
+    return false;
   }
   function precisionNow(){
     const live = livingIndices();
@@ -685,22 +810,36 @@ function simulate(p){
     const doRep = living.length>0 && rand() < p.r;
 
     if(doRep){
-      const repCandidates = living.filter(i => !replicated[i]);
+      let repCandidates = living.filter(i => !replicated[i]);
       if(repCandidates.length > 0){
+        // branch selection
+        const rbs = p.repBs||'random';
+        repCandidates = pickBranchStatic(repCandidates, rbs);
+        const rbp = p.repBp||'oldest';
+        const bp2 = (rbp==='first')?'oldest':(rbp==='last')?'newest':rbp;
         let target;
-        if(p.depth === 'random'){
-          target = repCandidates[Math.floor(rand()*repCandidates.length)];
-        } else if(p.depth === 'first'){
-          target = repCandidates[0];
-          for(const i of repCandidates) if(born[i] < born[target]) target = i;
+        if(bp2==='random'){
+          target=repCandidates[Math.floor(rand()*repCandidates.length)];
+        } else if(bp2==='oldest'){
+          target=repCandidates[0]; for(const i of repCandidates) if(born[i]<born[target]) target=i;
         } else {
-          target = repCandidates[0];
-          for(const i of repCandidates) if(born[i] > born[target]) target = i;
+          target=repCandidates[0]; for(const i of repCandidates) if(born[i]>born[target]) target=i;
         }
         replicated[target] = true;
         const passed = testPositive(truth[target], true);
         repPassed[target] = passed;
-        if(!passed){ if(rand() >= p.f) prune(target); else filedAway[target] = true; }
+        if(!passed){
+          if(rand() >= p.f){
+            const prVal=p.pr||0;
+            let effPr=prVal;
+            if(p.prCascade){
+              let desc=0;
+              for(let k=0;k<parent.length;k++) if(alive[k]&&isDescOfStatic(k,target)) desc++;
+              effPr=Math.min(1,prVal+0.05*desc);
+            }
+            if(rand()>=effPr) prune(target);
+          } else { filedAway[target]=true; }
+        }
       }
     } else {
       const isRoot = living.length===0 || rand() < p.pnr;
@@ -713,8 +852,8 @@ function simulate(p){
         if(testPositive(isTrue, false)) addNode(anchor, isTrue, g);
       }
     }
-    const pr = precisionNow();
-    if(pr !== null) timeline.push(pr);
+    const prec = precisionNow();
+    if(prec !== null) timeline.push(prec);
   }
 
   const live = livingIndices();
@@ -739,7 +878,8 @@ function theme(){
     canvas:cssVar('--canvas'), grid:cssVar('--grid'), muted:cssVar('--muted'), txt:cssVar('--txt'),
     good:cssVar('--good'), bad:cssVar('--bad'), pruned:cssVar('--pruned'),
     prunedTp:cssVar('--pruned-tp'), prunedFp:cssVar('--pruned-fp'), phantom:cssVar('--phantom'),
-    root:cssVar('--root'), amber:cssVar('--amber'), repRing:cssVar('--rep-ring')
+    root:cssVar('--root'), amber:cssVar('--amber'), repRing:cssVar('--rep-ring'),
+    tech:cssVar('--tech'), depth:cssVar('--depth'), border:cssVar('--border')
   };
 }
 const ICON_MOON    = '<svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M21 12.79A9 9 0 1 1 11.21 3a7 7 0 0 0 9.79 9.79z"/></svg>';
@@ -753,6 +893,7 @@ function setToggleIcon(){
 $('themeBtn').addEventListener('click', ()=>{
   document.body.classList.toggle('dark');
   setToggleIcon();
+  populateTlLegends();
   draw(1);
 });
 
@@ -785,8 +926,10 @@ let treeZoom = 1, treePanX = 0, treePanY = 0, treeDragging = false, treeDragLast
 let treeDragStart = null, treeDragMoved = false;
 let treeRenderParams = null; // set by drawTree; used for hit-testing
 let selectedNodeId = null;
+let liveAnimations = [];
+let lastAnimNodeIdx = -1;
 
-const sliders = [['r','v_r'],['pnext','v_pnext'],['ao','v_ao'],['bo','v_bo'],['ar','v_ar'],['br','v_br'],['f','v_f'],['pnr','v_pnr']];
+const sliders = [['r','v_r'],['pnext','v_pnext'],['ao','v_ao'],['bo','v_bo'],['ar','v_ar'],['br','v_br'],['f','v_f'],['pnr','v_pnr'],['fo','v_fo'],['pr','v_pr']];
 sliders.forEach(([id,vid])=> $(id).addEventListener('input', ()=> $(vid).textContent=(+$(id).value).toFixed(2)));
 
 function readParams(){
@@ -797,8 +940,12 @@ function readParams(){
     ao:+$('ao').value, bo:+$('bo').value,   // original studies: FP rate, FN rate
     ar:+$('ar').value, br:+$('br').value,   // replications: FP rate, FN rate
     f:+$('f').value, pnr:+$('pnr').value,
+    fo:+$('fo').value, pr:+$('pr').value,
+    prCascade:$('pr_cascade').checked,
+    repBs:$('rep_bs').value, repBp:$('rep_bp').value,
+    extBs:$('ext_bs').value, extBp:$('ext_bp').value,
     gens:Math.max(10, Math.min(20000, +$('gens').value|0)),
-    seed, depth:$('depth').value, anchor:$('anchor').value
+    seed
   };
 }
 
@@ -814,18 +961,31 @@ document.querySelectorAll('.plot-tab').forEach(t=>{
 });
 
 /* ====================== Canvas helpers ====================== */
+const SWEEP_IDS = ['sweep-timeline','sweep-tp','sweep-depth'];
+const TL_IDS    = ['tl-pct','tl-cnt'];
+
 function fitCanvas(cv){
   const dpr = window.devicePixelRatio || 1;
   const cssW = cv.clientWidth;
   if(cssW <= 0) return null;
-  const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
-  const fsReserve = (inFS && cv.id === 'tree') ? 120 : 56; // extra space for legend + action buttons
-  // On mobile, reserve more space below the canvas so buttons remain visible
-  const isMobile = window.innerWidth < 640;
-  const belowReserve = (cv.id === 'tree') ? (isMobile ? 180 : 90) : (isMobile ? 60 : 80);
-  const cssH = inFS
-    ? Math.max(400, window.innerHeight - fsReserve)
-    : (() => { const rect = cv.getBoundingClientRect(); return Math.max(isMobile ? 180 : 240, Math.min(window.innerHeight - rect.top - belowReserve, isMobile ? 420 : 700)); })();
+
+  let cssH;
+  // Timeline canvases: fixed 3:1 aspect ratio, both identical height
+  if(TL_IDS.includes(cv.id)){
+    cssH = Math.max(120, Math.round(cssW / 3));
+  // Sweep-chart canvases: uniform 3:1 height for visual consistency
+  } else if(SWEEP_IDS.includes(cv.id)){
+    cssH = Math.max(140, Math.round(cssW / 3.2));
+  } else {
+    const inFS = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    const fsReserve = (inFS && cv.id === 'tree') ? 120 : 56;
+    const isMobile = window.innerWidth < 640;
+    const belowReserve = (cv.id === 'tree') ? (isMobile ? 180 : 90) : (isMobile ? 60 : 80);
+    cssH = inFS
+      ? Math.max(400, window.innerHeight - fsReserve)
+      : (() => { const rect = cv.getBoundingClientRect(); return Math.max(isMobile ? 180 : 240, Math.min(window.innerHeight - rect.top - belowReserve, isMobile ? 420 : 700)); })();
+  }
+
   cv.style.height = cssH + 'px';
   cv.width = Math.round(cssW * dpr);
   cv.height = Math.round(cssH * dpr);
@@ -834,50 +994,105 @@ function fitCanvas(cv){
   return {ctx, w:cssW, h:cssH};
 }
 
-function drawTimeline(progress){
-  const T = theme();
-  const cv = $('timeline');
-  const fc = fitCanvas(cv);
-  if(!fc) return;
-  const {ctx,w,h} = fc;
+/* ---- Timeline: per-generation KPI trends ---- */
+let tlHoverX = {pct:-1, cnt:-1};
+
+function drawTimelines(progress){
+  if(!lastResult) return;
+  const tl=lastResult.timeline;
+  if(!tl||!tl.tp||!tl.tp.length) return;
+  const T=theme();
+  const gens=lastResult.gens;
+  drawTlChart('tl-pct', tl, ['fp','fn'], [T.bad, T.prunedTp], ['FP in literature','FN pruning rate'], true, T, gens, progress);
+  drawTlChart('tl-cnt', tl, ['tp','living','roots','depth'], [T.good,T.tech,T.amber,T.depth], ['Valid findings','Active findings','Living paradigms','Longest branch'], false, T, gens, progress);
+}
+
+function drawTlChart(cvId, tl, keys, colors, labels, isPct, T, gens, progress){
+  const cv=$(cvId); if(!cv) return;
+  const fc=fitCanvas(cv); if(!fc) return;
+  const {ctx,w,h}=fc;
   ctx.clearRect(0,0,w,h);
   const pad={l:44,r:16,t:14,b:42};
   const ix=pad.l, iy=pad.t, iw=w-pad.l-pad.r, ih=h-pad.t-pad.b;
+  const n=tl[keys[0]].length;
+  if(n===0) return;
+  const cut=Math.max(1,Math.floor(n*progress));
 
-  // y gridlines + precision labels
-  ctx.strokeStyle=T.grid; ctx.fillStyle=T.muted; ctx.font='11px sans-serif'; ctx.lineWidth=1; ctx.textAlign='left';
-  for(let k=0;k<=4;k++){
-    const yy=iy+ih*(k/4);
+  // y-axis
+  let yMax=isPct?1:Math.max(1,...keys.map(k=>Math.max(...tl[k].slice(0,cut))));
+  ctx.strokeStyle=T.grid; ctx.fillStyle=T.muted; ctx.font='11px sans-serif'; ctx.lineWidth=1; ctx.textAlign='right';
+  for(let i=0;i<=4;i++){
+    const yy=iy+ih*(i/4);
     ctx.beginPath(); ctx.moveTo(ix,yy); ctx.lineTo(ix+iw,yy); ctx.stroke();
-    ctx.fillText((1-k/4).toFixed(2), 8, yy+4);
+    const v=yMax*(1-i/4);
+    ctx.fillText(isPct?Math.round(v*100)+'%':Math.round(v), ix-5, yy+4);
   }
 
-  // per-generation precision — x-axis spans 0..maxGens so line grows left to right
-  if(lastResult && lastResult.timeline.length){
-    const tl=lastResult.timeline;
-    const maxG=Math.max(1, lastResult.gens);
-    const cut=Math.max(1, Math.floor(tl.length*progress));
-    ctx.strokeStyle=T.good; ctx.lineWidth=2; ctx.beginPath();
+  // lines
+  keys.forEach((key,ki)=>{
+    const data=tl[key];
+    const col=colors[ki];
+    ctx.strokeStyle=col; ctx.lineWidth=1.8; ctx.lineJoin='round';
+    ctx.beginPath();
     for(let i=0;i<cut;i++){
-      const x=ix+iw*(i/(maxG-1||1)), y=iy+ih*(1-tl[i]);
+      const x=ix+iw*(i/(gens-1||1));
+      const y=iy+ih*(1-Math.min(data[i],yMax)/yMax);
       i?ctx.lineTo(x,y):ctx.moveTo(x,y);
     }
     ctx.stroke();
+  });
+
+  // hover crosshair
+  const hx=cvId==='tl-pct'?tlHoverX.pct:tlHoverX.cnt;
+  if(hx>=ix&&hx<=ix+iw&&n>1){
+    const gi=Math.round((hx-ix)/iw*(n-1));
+    const gClamped=Math.max(0,Math.min(gi,cut-1));
+    ctx.strokeStyle=T.muted; ctx.lineWidth=1; ctx.setLineDash([3,3]);
+    ctx.beginPath(); ctx.moveTo(hx,iy); ctx.lineTo(hx,iy+ih); ctx.stroke();
+    ctx.setLineDash([]);
+    // tooltip box
+    const lines=keys.map((k,ki)=>{
+      const v=tl[k][gClamped];
+      return {label:labels[ki], val:isPct?Math.round(v*100)+'%':Math.round(v), color:colors[ki]};
+    });
+    lines.unshift({label:'Gen '+gClamped, val:'', color:T.muted});
+    const bx=hx<ix+iw/2?hx+8:hx-140;
+    const by=iy+4;
+    const bh2=(lines.length+0.5)*17;
+    ctx.fillStyle=document.body.classList.contains('dark')?'rgba(15,20,28,.9)':'rgba(255,255,255,.92)';
+    ctx.strokeStyle=T.border||T.grid;
+    ctx.lineWidth=1;
+    if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(bx,by,132,bh2,5); ctx.fill(); ctx.stroke(); }
+    else { ctx.fillRect(bx,by,132,bh2); ctx.strokeRect(bx,by,132,bh2); }
+    ctx.font='11.5px sans-serif';
+    lines.forEach((ln,i)=>{
+      ctx.fillStyle=ln.color;
+      ctx.textAlign='left';
+      ctx.fillText(ln.label+(ln.val?' - '+ln.val:''), bx+8, by+14+i*17);
+    });
   }
 
-  // x-axis ticks + label
-  const gens = lastResult ? lastResult.gens : 0;
-  const ticks = [{f:0,t:'0'},{f:.25,t:String(Math.round(gens*.25))},{f:.5,t:String(Math.round(gens*.5))},
-                 {f:.75,t:String(Math.round(gens*.75))},{f:1,t:String(gens)}];
-  ctx.fillStyle=T.muted; ctx.strokeStyle=T.grid; ctx.textAlign='center';
-  ticks.forEach(tk=>{
-    const x=ix+iw*tk.f;
-    ctx.beginPath(); ctx.moveTo(x,iy+ih); ctx.lineTo(x,iy+ih+4); ctx.stroke();
-    ctx.fillText(tk.t, x, iy+ih+16);
-  });
-  ctx.font='11px sans-serif'; ctx.fillStyle=T.muted;
-  ctx.fillText('generation  (0 to '+gens+')', ix+iw/2, h-6);
-  ctx.textAlign='left';
+  // x-axis
+  ctx.fillStyle=T.muted; ctx.textAlign='center'; ctx.font='11px sans-serif';
+  for(let t=0;t<=4;t++){
+    const x=ix+iw*t/4;
+    ctx.fillText(Math.round(gens*t/4), x, iy+ih+16);
+  }
+  ctx.fillText('generation', ix+iw/2, h-5);
+}
+
+function populateTlLegends(){
+  const T=theme();
+  const pctItems=[['FP in literature',T.bad],['FN pruning rate',T.prunedTp]];
+  const cntItems=[['Valid findings',T.good],['Active findings',T.tech],['Living paradigms',T.amber],['Longest branch',T.depth]];
+  function buildLegend(id,items){
+    const el=$(id); if(!el) return;
+    el.innerHTML=items.map(([lbl,col])=>
+      `<span><i class="dot" style="background:${col}"></i> ${lbl}</span>`
+    ).join('');
+  }
+  buildLegend('tl-pct-legend',pctItems);
+  buildLegend('tl-cnt-legend',cntItems);
 }
 
 /* ---- Organic forest layout over ALL nodes (alive + pruned) ---- */
@@ -997,7 +1212,7 @@ function drawTree(progress){
   });
   ctx.globalAlpha=1;
 
-  // nodes — all radii and lineWidths divided by rz so they stay constant on screen
+  // nodes: all radii and lineWidths divided by rz so they stay constant on screen
   nodes.forEach(n=>{
     const rv=reveal(n); if(rv<=0) return;
     const isRoot=n.parentId===null;
@@ -1039,6 +1254,32 @@ function drawTree(progress){
   });
   ctx.globalAlpha=1;
   ctx.restore();
+
+  // Animations (only at low speed)
+  if(gensPerSec<100 && liveAnimations.length){
+    const now=performance.now();
+    liveAnimations=liveAnimations.filter(a=>now<a.t0+a.dur);
+    ctx.save();
+    ctx.translate(treePanX,treePanY);
+    ctx.scale(treeZoom,treeZoom);
+    for(const a of liveAnimations){
+      const t2=(now-a.t0)/a.dur;
+      const x=SX(a.x), y=SY(a.y);
+      const rz=treeZoom;
+      const baseR=(a.type==='innovation'?5:3)/rz;
+      const R=baseR+(t2*20)/rz;
+      ctx.globalAlpha=(1-t2)*0.85;
+      ctx.strokeStyle=a.color;
+      ctx.lineWidth=2/rz;
+      ctx.beginPath(); ctx.arc(x,y,R,0,Math.PI*2); ctx.stroke();
+      if(a.type==='innovation'){
+        ctx.globalAlpha=(1-t2)*0.4;
+        ctx.beginPath(); ctx.arc(x,y,R+8/rz,0,Math.PI*2); ctx.stroke();
+      }
+    }
+    ctx.globalAlpha=1;
+    ctx.restore();
+  }
 }
 
 /* ---- Tree hit-testing and manual interaction ---- */
@@ -1093,6 +1334,7 @@ function manualInnovation(){
   const s = liveState;
   const pnext = +$('pnext').value;
   const ao = +$('ao').value, bo = +$('bo').value;
+  const fo = +$('fo').value;
   const testPos = isTrue => s.rand() < (isTrue ? (1 - bo) : ao);
   const isTrue = s.rand() < pnext;
   if(testPos(isTrue)){
@@ -1110,11 +1352,18 @@ function manualReplication(nodeId){
   if(!s.alive[nodeId] || s.replicated[nodeId]) return;
   const ar = +$('ar').value, br = +$('br').value;
   const f = +$('f').value;
+  const pr = +$('pr').value, prCascade = $('pr_cascade').checked;
   const testPos = isTrue => s.rand() < (isTrue ? (1 - br) : ar);
   s.replicated[nodeId] = true; s.counters.replications++;
   const passed = testPos(s.truth[nodeId]);
   s.repPassed[nodeId] = passed;
-  if(!passed){ if(s.rand() >= f) livePrune(s, nodeId); else s.filedAway[nodeId] = true; }
+  if(!passed){
+    if(s.rand() >= f){
+      let effPr = pr;
+      if(prCascade){ const desc = countDescendants(s, nodeId); effPr = Math.min(1, pr + 0.05 * desc); }
+      if(s.rand() >= effPr) livePrune(s, nodeId);
+    } else { s.filedAway[nodeId] = true; }
+  }
   s.gen++;
   manualRefresh();
 }
@@ -1125,6 +1374,7 @@ function manualExtension(nodeId){
   if(!s.alive[nodeId]) return;
   const pnext = +$('pnext').value;
   const ao = +$('ao').value, bo = +$('bo').value;
+  const fo = +$('fo').value;
   const testPos = isTrue => s.rand() < (isTrue ? (1 - bo) : ao);
   const isTrue = s.truth[nodeId] ? (s.rand() < pnext) : false;
   if(testPos(isTrue)){
@@ -1447,7 +1697,7 @@ function animateSweep(){
   sweepAnimId=requestAnimationFrame(step);
 }
 function draw(progress){
-  drawTimeline(progress); drawTree(progress);
+  drawTimelines(progress); drawTree(progress);
   drawSweepChart(progress); drawSweepChartTP(progress); drawSweepChartDepth(progress);
 }
 
@@ -1456,7 +1706,10 @@ function updateStats(res){
   $('s_fp').textContent     = res && res.living ? Math.round(100 * res.fpRate) + '%' : '-';
   $('s_fn').textContent     = res ? Math.round(100 * res.fnRate) + '%' : '-';
   $('s_living').textContent = res ? res.living : '-';
-  $('s_tp').textContent     = res ? res.tp : '-';
+  $('s_tp').textContent       = res ? res.tp : '-';
+  $('s_fp_count').textContent = res ? res.fp : '-';
+  $('s_rep_fail').textContent = res ? res.repFail : '-';
+  $('s_rep_ok').textContent   = res ? res.repOk : '-';
   $('s_roots').textContent  = res ? res.roots : '-';
   $('s_depth').textContent  = res && res.living ? res.maxBranchDepth : '-';
   if(liveState){
@@ -1486,7 +1739,7 @@ function liveInit(){
     parent:[], truth:[], alive:[], born:[], depthA:[], replicated:[], filedAway:[], repPassed:[],
     failedExt:[],        // true for phantom "failed extension" nodes
     phantomSlot: new Map(), // parentId -> index; limits to 1 phantom per parent
-    timeline:[], gen:0,
+    timeline:{fp:[],fn:[],tp:[],living:[],roots:[],depth:[]}, gen:0,
     counters:{ innovations:0, extensions:0, replications:0 }
   };
   treeZoom=1; treePanX=0; treePanY=0;
@@ -1526,13 +1779,55 @@ function liveLiving(s){
   return out;
 }
 
+function getRootOf(s, idx){
+  let cur=idx;
+  while(s.parent[cur]>=0) cur=s.parent[cur];
+  return cur;
+}
+
+function pickBranchCandidates(s, candidates, strategy){
+  if(strategy==='random'||!candidates.length) return candidates;
+  const byBranch=new Map();
+  for(const i of candidates){
+    const r=getRootOf(s,i);
+    if(!byBranch.has(r)) byBranch.set(r,[]);
+    byBranch.get(r).push(i);
+  }
+  if(byBranch.size<=1) return candidates;
+  const szMap=new Map();
+  for(let i=0;i<s.alive.length;i++){
+    if(s.alive[i]){ const r=getRootOf(s,i); szMap.set(r,(szMap.get(r)||0)+1); }
+  }
+  let best=null, bestSz=strategy==='shortest'?Infinity:-Infinity;
+  for(const [r] of byBranch){
+    const sz=szMap.get(r)||0;
+    if(strategy==='shortest'?sz<bestSz:sz>bestSz){bestSz=sz;best=r;}
+  }
+  return byBranch.get(best)||candidates;
+}
+
+function countDescendants(s, idx){
+  let n=0;
+  const stack=[idx];
+  while(stack.length){
+    const cur=stack.pop();
+    for(let k=0;k<s.parent.length;k++){
+      if(s.parent[k]===cur && s.alive[k]){ n++; stack.push(k); }
+    }
+  }
+  return n;
+}
+
 function livePickAnchor(s, living, anchor){
+  // normalize legacy values
+  if(anchor==='first') anchor='oldest';
+  if(anchor==='last') anchor='newest';
   const n=living.length, ord=living.map(i=>s.born[i]);
   const mn=Math.min(...ord), mx=Math.max(...ord);
   const w=new Array(n);
   for(let i=0;i<n;i++){
     if(anchor==='random') w[i]=1;
-    else if(anchor==='last') w[i]=Math.pow(ord[i]-mn+1,2);
+    else if(anchor==='newest') w[i]=Math.pow(ord[i]-mn+1,2);
     else w[i]=Math.pow(mx-ord[i]+1,2);
   }
   let sum=0; for(const x of w) sum+=x;
@@ -1552,7 +1847,10 @@ function liveStep(n){
     const ao=+$('ao').value, bo=+$('bo').value;
     const ar=+$('ar').value, br=+$('br').value;
     const f=+$('f').value, pnr=+$('pnr').value;
-    const depth=$('depth').value, anchor=$('anchor').value;
+    const fo=+$('fo').value;
+    const pr=+$('pr').value, prCascade=$('pr_cascade').checked;
+    const repBs=$('rep_bs').value, repBp=$('rep_bp').value;
+    const extBs=$('ext_bs').value, extBp=$('ext_bp').value;
     const testPos = (isTrue, isRep) => {
       const a = isRep ? ar : ao, b = isRep ? br : bo;
       return s.rand() < (isTrue ? (1 - b) : a);
@@ -1560,37 +1858,66 @@ function liveStep(n){
     const living=liveLiving(s);
     const doRep=living.length>0 && s.rand()<r;
     const candidates=living.filter(i=>!s.replicated[i]);
-    if(doRep && candidates.length>0){
+    if(doRep && candidates.length===0){
+      // nothing left to replicate: retry without counting this as a generation
+      if(r<1) step--; // will retry next iteration (guard: r=1 can't loop forever)
+      continue;
+    } else if(doRep && candidates.length>0){
+      // branch selection for replication
+      let repPool=pickBranchCandidates(s, candidates, repBs);
+      const bp2=(repBp==='first')?'oldest':(repBp==='last')?'newest':repBp;
       let target;
-      if(depth==='random') target=candidates[Math.floor(s.rand()*candidates.length)];
-      else if(depth==='first'){ target=candidates[0]; for(const i of candidates) if(s.born[i]<s.born[target]) target=i; }
-      else { target=candidates[0]; for(const i of candidates) if(s.born[i]>s.born[target]) target=i; }
+      if(bp2==='random') target=repPool[Math.floor(s.rand()*repPool.length)];
+      else if(bp2==='oldest'){ target=repPool[0]; for(const i of repPool) if(s.born[i]<s.born[target]) target=i; }
+      else { target=repPool[0]; for(const i of repPool) if(s.born[i]>s.born[target]) target=i; }
       s.replicated[target]=true; s.counters.replications++;
       const passed=testPos(s.truth[target], true);
       s.repPassed[target]=passed;
-      if(!passed){ if(s.rand()>=f) livePrune(s,target); else s.filedAway[target]=true; }
+      if(!passed){
+        if(s.rand()>=f){
+          let effPr=pr;
+          if(prCascade){ const desc=countDescendants(s,target); effPr=Math.min(1,pr+0.05*desc); }
+          if(s.rand()>=effPr) livePrune(s,target);
+        } else { s.filedAway[target]=true; }
+      }
     } else {
-      // also falls through when doRep=true but nothing left to replicate
+      // novelty act (also falls through when doRep=true but nothing left to replicate)
       const isRoot=living.length===0 || s.rand()<pnr;
       if(isRoot){
         const isTrue=s.rand()<pnext;
-        if(testPos(isTrue, false)){ liveAddNode(s,-1,isTrue,s.gen); s.counters.innovations++; }
+        if(testPos(isTrue, false)){
+          liveAddNode(s,-1,isTrue,s.gen); s.counters.innovations++;
+        } else {
+          liveAddPhantom(s,-1,isTrue,s.gen); // always record; fo controls simulation dynamics only
+        }
       } else {
-        const anch=livePickAnchor(s,living,anchor);
+        const livingPool=pickBranchCandidates(s, living, extBs);
+        const anch=livePickAnchor(s,livingPool,extBp);
         const isTrue=s.truth[anch] ? (s.rand()<pnext) : false;
         if(testPos(isTrue, false)){
           liveAddNode(s,anch,isTrue,s.gen); s.counters.extensions++;
         } else {
-          // failed extension: add/refresh one phantom per parent to show the attempt
+          // always record; add/refresh one phantom per parent to show the attempt
           const ex = s.phantomSlot.get(anch);
           if(ex !== undefined){ s.born[ex]=s.gen; s.truth[ex]=isTrue; } // refresh
           else { liveAddPhantom(s,anch,isTrue,s.gen); s.phantomSlot.set(anch, s.parent.length-1); }
         }
       }
     }
+    // timeline push
     const live2=liveLiving(s);
     if(live2.length>0){
-      let tp=0; for(const i of live2) if(s.truth[i]) tp++; s.timeline.push(tp/live2.length);
+      let tp2=0; for(const i of live2) if(s.truth[i]) tp2++;
+      let pTp2=0; for(let i=0;i<s.parent.length;i++) if(!s.alive[i]&&!s.failedExt[i]&&s.truth[i]) pTp2++;
+      const fp2=live2.length-tp2;
+      const roots2=s.parent.filter((p2,i)=>p2<0&&s.alive[i]).length;
+      const depth2=Math.max(...live2.map(i=>s.depthA[i]));
+      s.timeline.fp.push(live2.length?fp2/live2.length:0);
+      s.timeline.fn.push((tp2+pTp2)>0?pTp2/(tp2+pTp2):0);
+      s.timeline.tp.push(tp2);
+      s.timeline.living.push(live2.length);
+      s.timeline.roots.push(roots2);
+      s.timeline.depth.push(depth2);
     }
     s.gen++;
   }
@@ -1615,10 +1942,14 @@ function liveSnapshot(){
   const fp = live.length - tp;
   const fpRate = live.length > 0 ? fp / live.length : 0;           // FP in literature
   const fnRate = (tp + prunedTp) > 0 ? prunedTp / (tp + prunedTp) : 0; // pruned TP / all-TP-ever-published
+  // replication outcomes (over all nodes that were ever a replication target)
+  let repOk=0, repFail=0;
+  for(let i=0;i<n;i++) if(s.replicated[i]){ if(s.repPassed[i]) repOk++; else repFail++; }
+  // timeline is now an object {fp,fn,tp,living,roots,depth}
   return {
     nodes, precision:live.length?tp/live.length:0,
     living:live.length, tp, fp, fpRate, fnRate, roots, maxBranchDepth,
-    prunedTp, totalPruned,
+    prunedTp, totalPruned, repOk, repFail,
     timeline:s.timeline, gens:maxGens,
     maxBorn:s.born.length?Math.max(...s.born):1
   };
@@ -1646,6 +1977,7 @@ function startLive(){
 function resetSim(){
   pauseLive();
   liveInit();
+  lastAnimNodeIdx=-1; liveAnimations=[];
   lastResult=liveSnapshot();
   computeTreeLayout();
   updateStats(lastResult);
@@ -1665,9 +1997,24 @@ function liveTick(ts){
   lastResult=liveSnapshot();
   if(lastResult){
     const nc=lastResult.nodes.length;
-    if(nc!==lastNodeCount){ computeTreeLayout(); lastNodeCount=nc; }
+    const needsRedraw = nc!==lastNodeCount;
+    if(needsRedraw){ computeTreeLayout(); lastNodeCount=nc; }
     updateStats(lastResult);
     draw(1);
+    // queue animation for new nodes at low speed
+    if(gensPerSec<100 && treeLayout && lastResult){
+      const nodes=lastResult.nodes;
+      if(nodes.length>lastAnimNodeIdx+1){
+        const aNode=nodes[nodes.length-1];
+        if(aNode && !aNode.failedExt){
+          const T=theme();
+          const type=aNode.parentId===null?'innovation':'extension';
+          const color=aNode.trueStatus?T.good:T.bad;
+          liveAnimations.push({x:aNode._x,y:aNode._y,t0:performance.now(),dur:type==='innovation'?700:500,type,color});
+        }
+        lastAnimNodeIdx=nodes.length-1;
+      }
+    }
   }
   liveAnimId=requestAnimationFrame(liveTick);
 }
@@ -1887,8 +2234,34 @@ document.addEventListener('keydown', e=>{
   });
 })();
 
-/* init — start immediately */
+/* ---- Timeline canvas mouse listeners ---- */
+['tl-pct','tl-cnt'].forEach(id=>{
+  const cv=$(id); if(!cv) return;
+  cv.addEventListener('mousemove',e=>{
+    const rect=cv.getBoundingClientRect();
+    const key=id==='tl-pct'?'pct':'cnt';
+    tlHoverX[key]=e.clientX-rect.left;
+    if(lastResult) drawTimelines(1);
+  });
+  cv.addEventListener('mouseleave',()=>{
+    const key=id==='tl-pct'?'pct':'cnt';
+    tlHoverX[key]=-1;
+    if(lastResult) drawTimelines(1);
+  });
+});
+
+/* Citation copy button */
+$('cite-copy-btn')?.addEventListener('click', ()=>{
+  const plain = 'Röseler, L. (2026). An Evolutionary Model of Research (Version 0.8) [Simulator]. https://lukasroeseler.github.io/research-evolution/';
+  navigator.clipboard?.writeText(plain).then(()=>{
+    const btn=$('cite-copy-btn'); const orig=btn.textContent;
+    btn.textContent='Copied!'; setTimeout(()=>{ btn.textContent=orig; }, 1600);
+  });
+});
+
+/* init: start immediately */
 setToggleIcon();
+populateTlLegends();
 // updateSpeedToggle needs the DOM to be laid out, so defer by one frame
 requestAnimationFrame(updateSpeedToggle);
 updateTreeActions();
