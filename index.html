@@ -335,6 +335,46 @@
   .cite-copy{position:absolute;top:10px;right:10px;font-size:11px;padding:3px 11px;border-radius:5px;background:var(--accent-soft);color:var(--accent);border:1px solid var(--border);cursor:pointer;transition:background .15s}
   .cite-copy:hover{background:var(--accent);color:#fff}
 
+  /* ---- Example knowledge graph ---- */
+  .exgraph{max-width:840px}
+  .ex-legend{display:flex; flex-wrap:wrap; gap:7px 16px; margin:4px 0 20px; font-size:12px; color:var(--muted)}
+  .ex-legend span{display:inline-flex; align-items:center; gap:6px}
+  .ex-legend i{width:11px; height:11px; border-radius:3px; display:inline-block}
+  .ex-branch-title{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.1em;
+    color:var(--muted); margin:20px 0 4px; padding-top:12px; border-top:1px solid var(--border)}
+  .ex-branch{padding-left:16px; border-left:2px dashed var(--border); margin-left:4px}
+  .ex-node{position:relative; background:var(--panel); border:1px solid var(--border);
+    border-left:4px solid var(--muted); border-radius:8px; padding:9px 13px; margin:8px 0;
+    box-shadow:0 1px 3px var(--shadow)}
+  .ex-node .ex-badge{display:inline-block; font-size:9.5px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.07em; padding:2px 8px; border-radius:999px; background:var(--panel2);
+    color:var(--muted); margin-right:8px; vertical-align:middle}
+  .ex-ref{font-weight:700; font-size:14px; text-decoration:none}
+  .ex-ref:hover{text-decoration:underline}
+  .ex-doi{font-size:10.5px; color:var(--muted); margin-left:7px; font-family:ui-monospace,Consolas,monospace}
+  .ex-doi:hover{color:var(--accent)}
+  .ex-note{display:block; font-size:12.5px; color:var(--muted); margin-top:5px; line-height:1.5}
+  .ex-good{border-left-color:var(--good)}      .ex-good .ex-ref{color:var(--good)}
+  .ex-bad{border-left-color:var(--bad)}        .ex-bad .ex-ref{color:var(--bad)}
+  .ex-amber{border-left-color:var(--amber)}    .ex-amber .ex-ref{color:var(--amber)}
+  .ex-root{border-left-color:var(--root)}      .ex-root .ex-ref{color:var(--root)}
+  .ex-rep{border-left-color:var(--rep-ring)}   .ex-rep .ex-ref{color:var(--rep-ring)}
+  .ex-num{display:inline-flex; align-items:center; justify-content:center; width:20px; height:20px;
+    border-radius:50%; background:var(--panel2); border:1px solid var(--border); font-size:11px;
+    font-weight:700; color:var(--muted); margin-right:9px; vertical-align:middle; flex-shrink:0;
+    font-family:ui-monospace,Consolas,monospace}
+  #exCanvas{cursor:pointer}
+  .ex-leg-ring{width:12px; height:12px; border-radius:50%; display:inline-block; border:2px dashed var(--bad); box-sizing:border-box}
+  .ex-leg-root{width:12px; height:12px; border-radius:50%; display:inline-block; border:2px solid var(--root); box-sizing:border-box}
+  .ex-subrep{display:block; margin:5px 0 0 28px; font-size:12px; color:var(--muted); padding-left:2px; border-left:2px solid var(--bad)}
+  .ex-subrep{padding:2px 0 2px 8px}
+  .ex-subrep .ex-ref{font-size:12.5px}
+  .ex-tip{position:absolute; z-index:60; pointer-events:none; transform:translateY(-50%);
+    background:#1f2328; color:#e6edf3; font-size:12px; font-weight:600; padding:6px 10px; border-radius:6px;
+    box-shadow:0 4px 14px rgba(0,0,0,.35); white-space:normal; width:max-content; max-width:260px; line-height:1.45}
+  body.dark .ex-tip{background:#e6edf3; color:#1f2328}
+  .ex-tip[hidden]{display:none}
+
   /* generic info-bubble tooltip (KPI tiles, toggles) -- opens downward */
   .q{position:relative; display:inline-flex; align-items:center; justify-content:center;
      width:15px; height:15px; border-radius:50%; background:var(--panel2); border:1px solid var(--border);
@@ -566,6 +606,7 @@
         <div class="plot-tab" data-panel="results">Results</div>
         <div class="plot-tab" data-panel="timeline">Timelines</div>
         <div class="plot-tab" data-panel="optimal">Optimal Replication Rate</div>
+        <div class="plot-tab" data-panel="example">Example</div>
         <div class="plot-tab" data-panel="about">About</div>
       </div>
 
@@ -665,6 +706,186 @@
             <span><i class="dot" style="background:hsl(190,70%,48%)"></i> low replication rate</span>
             <span><i class="dot" style="background:hsl(237,70%,48%)"></i> mid</span>
             <span><i class="dot" style="background:hsl(285,70%,48%)"></i> high replication rate</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="plot-panel" id="panel-example">
+        <div class="exgraph">
+          <p class="plot-desc">A worked, deliberately <strong>simplified</strong> example: a slice of the <strong>anchoring-effect</strong> literature rendered as an REI knowledge graph, organised around the structure of R&#246;seler &amp; Sch&#252;tz's meta-analysis. It is illustrative, not exhaustive: each branch stands for a much larger body of work, and many studies are omitted. Each numbered <strong>dot</strong> is an original finding; each <strong>ring</strong> around a dot is a replication of that finding (red dashed = failed). Hover a dot or a ring to see its reference; click to open the source.</p>
+
+          <div class="ex-legend">
+            <span><i style="background:var(--good)"></i> original finding (supported)</span>
+            <span><i style="background:var(--amber)"></i> contested / confounded finding</span>
+            <span><i class="ex-leg-root"></i> purple ring = founding paradigm (root)</span>
+            <span><i class="ex-leg-ring"></i> red dashed ring = failed replication</span>
+          </div>
+
+          <div class="canvas-wrap">
+            <canvas id="exCanvas"></canvas>
+            <div class="ex-tip" id="exTip" hidden></div>
+          </div>
+
+          <p class="plot-desc" style="margin-top:10px">The branch labels name each theory or moderator strand. The whole graph is read through R&#246;seler &amp; Sch&#252;tz's meta-analysis, which is the interpretive lens rather than a node. Confirmed DOIs are shown; entries marked "DOI: please provide" link to a search and are awaiting a verified DOI.</p>
+
+          <div class="exrefs">
+            <div class="ex-node ex-good ex-root">
+              <span class="ex-num">1</span><span class="ex-badge">Innovation (root)</span>
+              <a class="ex-ref" href="https://doi.org/10.1126/science.185.4157.1124" target="_blank" rel="noopener">Tversky &amp; Kahneman, 1974</a>
+              <span class="ex-doi">10.1126/science.185.4157.1124</span>
+              <span class="ex-note">Founding demonstration of anchoring. Large and among the most replicable effects in social psychology, so the root strand stays alive (meta-analytic g = 0.69).</span>
+            </div>
+
+            <div class="ex-branch-title">Theory branch: Insufficient Adjustment</div>
+            <div class="ex-branch">
+              <div class="ex-node ex-good">
+                <span class="ex-num">2</span><span class="ex-badge">Extension</span>
+                <a class="ex-ref" href="https://scholar.google.com/scholar?q=Epley+Gilovich+2001+putting+adjustment+back+anchoring" target="_blank" rel="noopener">Epley &amp; Gilovich, 2001</a>
+                <span class="ex-doi">DOI: please provide</span>
+                <span class="ex-note">People adjust in discrete steps from self-generated anchors and stop too early.</span>
+                <span class="ex-subrep">&#8627; Replication (failed): <a class="ex-ref" href="https://doi.org/10.15626/MP.2024.4137" target="_blank" rel="noopener">R&#246;seler, 2024 (falsification test of insufficient adjustment)</a> <span class="ex-doi">10.15626/MP.2024.4137</span></span>
+              </div>
+              <div class="ex-node ex-good">
+                <span class="ex-num">3</span><span class="ex-badge">Extension</span>
+                <a class="ex-ref" href="https://scholar.google.com/scholar?q=Epley+Gilovich+2006+anchoring+adjustment+heuristic+insufficient" target="_blank" rel="noopener">Epley &amp; Gilovich, 2006</a>
+                <span class="ex-doi">DOI: please provide</span>
+                <span class="ex-note">Formalises why adjustments are insufficient.</span>
+              </div>
+              <div class="ex-node ex-good">
+                <span class="ex-num">4</span><span class="ex-badge">Extension</span>
+                <a class="ex-ref" href="https://scholar.google.com/scholar?q=Lieder+Griffiths+2018+anchoring+rational+cognitive+resources" target="_blank" rel="noopener">Lieder et al., 2018</a>
+                <span class="ex-doi">DOI: please provide</span>
+                <span class="ex-note">Anchoring as rational use of limited cognitive resources.</span>
+              </div>
+            </div>
+
+            <div class="ex-branch-title">Theory branch: Selective Accessibility</div>
+            <div class="ex-branch">
+              <div class="ex-node ex-good">
+                <span class="ex-num">5</span><span class="ex-badge">Extension</span>
+                <a class="ex-ref" href="https://scholar.google.com/scholar?q=Mussweiler+Strack+1999+selective+accessibility+anchoring" target="_blank" rel="noopener">Mussweiler &amp; Strack, 1999</a>
+                <span class="ex-doi">DOI: please provide</span>
+                <span class="ex-note">Hypothesis-consistent testing plus semantic priming.</span>
+                <span class="ex-subrep">&#8627; Replication (failed): <a class="ex-ref" href="https://doi.org/10.31234/osf.io/4j5wb" target="_blank" rel="noopener">Bahn&#237;k, 2021, Anchoring does not activate examples associated with the anchor value</a> <span class="ex-doi">10.31234/osf.io/4j5wb</span></span>
+              </div>
+              <div class="ex-node ex-good">
+                <span class="ex-num">6</span><span class="ex-badge">Extension, applied</span>
+                <a class="ex-ref" href="https://scholar.google.com/scholar?q=Englich+Mussweiler+Strack+2006+playing+dice+criminal+sentences" target="_blank" rel="noopener">Englich, Mussweiler &amp; Strack, 2006</a>
+                <span class="ex-doi">DOI: please provide</span>
+                <span class="ex-note">Judicial sentences anchored even by transparently irrelevant numbers.</span>
+              </div>
+            </div>
+
+            <div class="ex-branch-title">Theory branch: Scale Distortion</div>
+            <div class="ex-branch">
+              <div class="ex-node ex-good">
+                <span class="ex-num">7</span><span class="ex-badge">Extension</span>
+                <a class="ex-ref" href="https://scholar.google.com/scholar?q=Frederick+Mochon+2012+scale+distortion+theory+anchoring" target="_blank" rel="noopener">Frederick &amp; Mochon, 2012</a>
+                <span class="ex-doi">DOI: please provide</span>
+                <span class="ex-note">Anchors distort the response scale rather than the underlying judgment.</span>
+                <span class="ex-subrep">&#8627; Replication (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Bahnik+2021+scale+distortion+anchoring+subsequent+trials" target="_blank" rel="noopener">Bahn&#237;k, 2021 (scale distortion, subsequent trials)</a> <span class="ex-doi">DOI: please provide</span></span>
+              </div>
+            </div>
+
+            <div class="ex-branch-title">Phenomenon branch: Subliminal anchoring</div>
+            <div class="ex-branch">
+              <div class="ex-node ex-good">
+                <span class="ex-num">8</span><span class="ex-badge">Extension</span>
+                <a class="ex-ref" href="https://scholar.google.com/scholar?q=Reitsma-van+Rooijen+Daamen+2006+subliminal+anchoring" target="_blank" rel="noopener">Reitsma-van Rooijen &amp; Daamen, 2006</a>
+                <span class="ex-doi">DOI: please provide</span>
+                <span class="ex-note">Subliminally presented numbers bias probability estimates.</span>
+                <span class="ex-subrep">&#8627; Replication (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Roeseler+subliminal+anchoring+replication" target="_blank" rel="noopener">R&#246;seler (fails to replicate both subliminal studies)</a> <span class="ex-doi">DOI: please provide</span></span>
+              </div>
+              <div class="ex-node ex-good">
+                <span class="ex-num">9</span><span class="ex-badge">Extension</span>
+                <a class="ex-ref" href="https://scholar.google.com/scholar?q=Mussweiler+Englich+2005+subliminal+anchoring" target="_blank" rel="noopener">Mussweiler &amp; Englich, 2005</a>
+                <span class="ex-doi">DOI: please provide</span>
+                <span class="ex-note">Subliminal anchoring with a proposed mechanism.</span>
+                <span class="ex-subrep">&#8627; Replication (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Roeseler+subliminal+anchoring+replication" target="_blank" rel="noopener">R&#246;seler (same study; fails to replicate both)</a> <span class="ex-doi">DOI: please provide</span></span>
+              </div>
+            </div>
+
+            <div class="ex-branch-title">Phenomenon branch: Incidental anchoring</div>
+            <div class="ex-branch">
+              <div class="ex-node ex-good">
+                <span class="ex-num">10</span><span class="ex-badge">Extension</span>
+                <a class="ex-ref" href="https://scholar.google.com/scholar?q=Critcher+Gilovich+2008+incidental+environmental+anchors" target="_blank" rel="noopener">Critcher &amp; Gilovich, 2008</a>
+                <span class="ex-doi">DOI: please provide</span>
+                <span class="ex-note">Incidental environmental numbers bias unrelated estimates.</span>
+                <span class="ex-subrep">&#8627; Replication (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Many+Labs+incidental+anchoring+replication" target="_blank" rel="noopener">Many Labs</a> <span class="ex-doi">DOI: please provide</span></span>
+                <span class="ex-subrep">&#8627; Replication (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Shanks+incidental+anchoring+replication+failure" target="_blank" rel="noopener">Shanks et al.</a> <span class="ex-doi">DOI: please provide</span></span>
+              </div>
+            </div>
+
+            <div class="ex-branch-title">Moderator branch: Personality</div>
+            <div class="ex-branch">
+              <div class="ex-node ex-good">
+                <span class="ex-num">11</span><span class="ex-badge">Extension</span>
+                <a class="ex-ref" href="https://scholar.google.com/scholar?q=McElroy+Dowd+2007+openness+anchoring" target="_blank" rel="noopener">McElroy &amp; Dowd, 2007</a>
+                <span class="ex-doi">DOI: please provide</span>
+                <span class="ex-note">Openness-to-experience reported to moderate susceptibility to anchors.</span>
+                <span class="ex-subrep">&#8627; Replication (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Cheek+Norem+anchoring+personality+replication" target="_blank" rel="noopener">Cheek &amp; Norem</a> <span class="ex-doi">DOI: please provide</span></span>
+              </div>
+            </div>
+
+            <div class="ex-branch-title">Moderator branch: Cognitive ability</div>
+            <div class="ex-branch">
+              <div class="ex-node ex-good">
+                <span class="ex-num">12</span><span class="ex-badge">Extension</span>
+                <a class="ex-ref" href="https://scholar.google.com/scholar?q=Bergman+Ellingsen+Johannesson+2010+anchoring+cognitive+ability" target="_blank" rel="noopener">Bergman et al., 2010</a>
+                <span class="ex-doi">DOI: please provide</span>
+                <span class="ex-note">Cognitive ability reported to relate to anchoring magnitude.</span>
+                <span class="ex-subrep">&#8627; Replication (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Roeseler+anchoring+cognitive+ability+replication" target="_blank" rel="noopener">R&#246;seler (fails to replicate the cognitive-ability moderation)</a> <span class="ex-doi">DOI: please provide</span></span>
+              </div>
+            </div>
+
+            <div class="ex-branch-title">Moderator branch: Anchor extremeness and nonlinearity</div>
+            <div class="ex-branch">
+              <div class="ex-node ex-amber">
+                <span class="ex-num">13</span><span class="ex-badge">Extension, confounded</span>
+                <a class="ex-ref" href="https://scholar.google.com/scholar?q=Chapman+Johnson+1994+limits+of+anchoring" target="_blank" rel="noopener">Chapman &amp; Johnson, 1994</a>
+                <span class="ex-doi">DOI: please provide</span>
+                <span class="ex-note">Reported nonlinearity, but used the geometric mean, which can manufacture it.</span>
+              </div>
+              <div class="ex-node ex-amber">
+                <span class="ex-num">14</span><span class="ex-badge">Meta-analysis</span>
+                <a class="ex-ref" href="https://scholar.google.com/scholar?q=Bystranowski+2021+anchoring+legal+decision+making+meta-analysis" target="_blank" rel="noopener">Bystranowski et al., 2021</a>
+                <span class="ex-doi">DOI: please provide</span>
+                <span class="ex-note">Suggests an inverted-U between anchor extremeness and effect size in legal decisions.</span>
+              </div>
+            </div>
+
+            <div class="ex-branch-title">Moderator branch: Incentives</div>
+            <div class="ex-branch">
+              <div class="ex-node ex-good">
+                <span class="ex-num">15</span><span class="ex-badge">Extension</span>
+                <a class="ex-ref" href="https://scholar.google.com/scholar?q=Simmons+LeBoeuf+Nelson+2010+accuracy+motivation+anchoring" target="_blank" rel="noopener">Simmons, LeBoeuf &amp; Nelson, 2010</a>
+                <span class="ex-doi">DOI: please provide</span>
+                <span class="ex-note">Accuracy motivation reported to reduce anchoring; long seen as a debiasing lever.</span>
+                <span class="ex-subrep">&#8627; Replication (null): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Enke+2021+incentives+cognitive+biases+anchoring" target="_blank" rel="noopener">Enke et al., 2021</a> <span class="ex-doi">DOI: please provide</span></span>
+              </div>
+            </div>
+
+            <div class="ex-branch-title">Moderator branch: Anchor relevance (random vs informative)</div>
+            <div class="ex-branch">
+              <div class="ex-node ex-good">
+                <span class="ex-num">16</span><span class="ex-badge">Extension, paradigm</span>
+                <a class="ex-ref" href="https://scholar.google.com/scholar?q=Jacowitz+Kahneman+1995+measures+of+anchoring+estimation+tasks" target="_blank" rel="noopener">Jacowitz &amp; Kahneman, 1995</a>
+                <span class="ex-doi">DOI: please provide</span>
+                <span class="ex-note">Introduced the calibrated percentile-anchor paradigm and standard measures.</span>
+              </div>
+              <div class="ex-node ex-good">
+                <span class="ex-num">17</span><span class="ex-badge">Extension</span>
+                <a class="ex-ref" href="https://scholar.google.com/scholar?q=Sugden+Zheng+Zizzo+2013+not+all+anchors+created+equal" target="_blank" rel="noopener">Sugden, Zheng &amp; Zizzo, 2013</a>
+                <span class="ex-doi">DOI: please provide</span>
+                <span class="ex-note">Random anchors exert smaller effects than informative ones.</span>
+              </div>
+            </div>
+
+            <div class="ex-branch-title">Reading the graph: the meta-analysis as lens</div>
+            <div class="ex-branch">
+              <p class="ex-note" style="margin:6px 0 0">The whole graph is interpreted through <a class="ex-ref" style="font-size:13px" href="https://osf.io/preprints/psyarxiv/wf2tn_v1" target="_blank" rel="noopener">R&#246;seler &amp; Sch&#252;tz, 2024</a> <span class="ex-doi">osf.io/preprints/psyarxiv/wf2tn_v1 &middot; data: osf.io/4t5mu</span>. The meta-analysis confirms a large but heterogeneous effect (g = 0.69, k = 393); prunes the incentive-debiasing and priming claims as null; finds random anchors ineffective; and judges rationality and nonlinearity accounts best supported. It is the lens for the colours above rather than a node in the graph.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -973,6 +1194,7 @@ $('themeBtn').addEventListener('click', ()=>{
   setToggleIcon();
   populateTlLegends();
   draw(1);
+  drawExampleGraph();
 });
 
 /* ====================== Fullscreen buttons ====================== */
@@ -995,8 +1217,8 @@ document.querySelectorAll('.canvas-wrap').forEach(wrap => {
   });
   wrap.appendChild(btn);
 });
-document.addEventListener('fullscreenchange', ()=>{ updateFsBtns(); if(lastResult) draw(1); });
-document.addEventListener('webkitfullscreenchange', ()=>{ updateFsBtns(); if(lastResult) draw(1); });
+document.addEventListener('fullscreenchange', ()=>{ updateFsBtns(); if(lastResult) draw(1); drawExampleGraph(); });
+document.addEventListener('webkitfullscreenchange', ()=>{ updateFsBtns(); if(lastResult) draw(1); drawExampleGraph(); });
 
 /* ====================== State ====================== */
 let lastResult = null, lastSweep = null, treeLayout = null;
@@ -1035,6 +1257,7 @@ document.querySelectorAll('.plot-tab').forEach(t=>{
     t.classList.add('active');
     $('panel-'+t.dataset.panel).classList.add('active');
     if(lastResult) draw(1);
+    if(t.dataset.panel==='example') requestAnimationFrame(drawExampleGraph);
   });
 });
 
@@ -2169,7 +2392,7 @@ $('computeBtn').addEventListener('click', ()=>{
 });
 
 
-window.addEventListener('resize', ()=>{ if(lastResult) draw(1); });
+window.addEventListener('resize', ()=>{ if(lastResult) draw(1); drawExampleGraph(); });
 
 /* ---- Tree canvas: zoom, pan, and manual interaction ---- */
 (function(){
@@ -2530,6 +2753,160 @@ $('cite-copy-btn')?.addEventListener('click', ()=>{
     else if(e.key==='ArrowLeft') $('wtPrev').click();
   });
   window.addEventListener('resize', ()=>{ if(!overlay.hidden) drawWT(); });
+})();
+
+/* ====================== Example knowledge-graph plot (anchoring literature) ====================== */
+// Search-link helper for references whose DOI is not yet confirmed (no hallucinated DOIs).
+const SRCH = q => 'https://scholar.google.com/scholar?q=' + encodeURIComponent(q);
+// Each node is an ORIGINAL finding (a dot). s: dot colour (good/amber). root:true draws a purple ring.
+// reps: replication studies, drawn as bigger rings around the dot (not separate dots).
+//   outcome 'fail' = red dashed ring, 'confirm' = green dashed ring. Each is hoverable / clickable.
+const EX_NODES = [
+  {n:1,  x:0.0, y:0.0,  s:'good', root:true, ref:'Tversky & Kahneman, 1974', url:'https://doi.org/10.1126/science.185.4157.1124'},
+  // Insufficient adjustment
+  {n:2,  x:2.6, y:-8.5, s:'good', p:1, blabel:'Insufficient adjustment', ref:'Epley & Gilovich, 2001', url:SRCH('Epley Gilovich 2001 putting adjustment back anchoring heuristic'),
+    reps:[{ref:'Röseler, 2024 (falsification test of insufficient adjustment)', url:'https://doi.org/10.15626/MP.2024.4137', outcome:'fail'}]},
+  {n:3,  x:4.6, y:-8.5, s:'good', p:2, ref:'Epley & Gilovich, 2006', url:SRCH('Epley Gilovich 2006 anchoring adjustment heuristic insufficient')},
+  {n:4,  x:6.6, y:-8.5, s:'good', p:3, ref:'Lieder et al., 2018', url:SRCH('Lieder Griffiths Huys Goodman 2018 anchoring bias rational use cognitive resources')},
+  // Selective accessibility
+  {n:5,  x:2.6, y:-6.6, s:'good', p:1, blabel:'Selective accessibility', ref:'Mussweiler & Strack, 1999', url:SRCH('Mussweiler Strack 1999 hypothesis consistent testing semantic priming anchoring'),
+    reps:[{ref:'Bahník, 2021 (anchoring does not activate examples associated with the anchor value)', url:'https://doi.org/10.31234/osf.io/4j5wb', outcome:'fail'}]},
+  {n:6,  x:4.6, y:-6.6, s:'good', p:5, ref:'Englich, Mussweiler & Strack, 2006', url:SRCH('Englich Mussweiler Strack 2006 playing dice criminal sentences anchoring')},
+  // Scale distortion
+  {n:7,  x:2.6, y:-4.7, s:'good', p:1, blabel:'Scale distortion', ref:'Frederick & Mochon, 2012', url:SRCH('Frederick Mochon 2012 scale distortion theory anchoring'),
+    reps:[{ref:'Bahník, 2021 (scale distortion, subsequent trials)', url:SRCH('Bahnik 2021 scale distortion anchoring subsequent trials'), outcome:'fail'}]},
+  // Subliminal anchoring
+  {n:8,  x:2.6, y:-2.8, s:'good', p:1, blabel:'Subliminal anchoring', ref:'Reitsma-van Rooijen & Daamen, 2006', url:SRCH('Reitsma-van Rooijen Daamen 2006 subliminal anchoring probability estimates'),
+    reps:[{ref:'Röseler (failed replication of subliminal anchoring)', url:SRCH('Roeseler subliminal anchoring replication'), outcome:'fail'}]},
+  {n:9,  x:4.6, y:-2.8, s:'good', p:8, ref:'Mussweiler & Englich, 2005', url:SRCH('Mussweiler Englich 2005 subliminal anchoring judgmental consequences'),
+    reps:[{ref:'Röseler (failed replication of subliminal anchoring)', url:SRCH('Roeseler subliminal anchoring replication'), outcome:'fail'}]},
+  // Incidental anchoring
+  {n:10, x:2.6, y:-0.9, s:'good', p:1, blabel:'Incidental anchoring', ref:'Critcher & Gilovich, 2008', url:SRCH('Critcher Gilovich 2008 incidental environmental anchors'),
+    reps:[{ref:'Many Labs (failed replication of incidental anchoring)', url:SRCH('Many Labs incidental anchoring replication'), outcome:'fail'},
+          {ref:'Shanks et al. (failed replication of incidental anchoring)', url:SRCH('Shanks incidental anchoring replication failure'), outcome:'fail'}]},
+  // Personality
+  {n:11, x:2.6, y:1.0,  s:'good', p:1, blabel:'Personality', ref:'McElroy & Dowd, 2007', url:SRCH('McElroy Dowd 2007 openness to experience anchoring'),
+    reps:[{ref:'Cheek & Norem (failed replication of personality moderation)', url:SRCH('Cheek Norem anchoring personality replication'), outcome:'fail'}]},
+  // Cognitive ability (new branch)
+  {n:12, x:2.6, y:2.9,  s:'good', p:1, blabel:'Cognitive ability', ref:'Bergman et al., 2010', url:SRCH('Bergman Ellingsen Johannesson Svensson 2010 anchoring cognitive ability'),
+    reps:[{ref:'Röseler (failed replication of cognitive-ability moderation)', url:SRCH('Roeseler anchoring cognitive ability replication'), outcome:'fail'}]},
+  // Anchor extremeness / nonlinearity
+  {n:13, x:2.6, y:4.8,  s:'amber', p:1, blabel:'Anchor extremeness', ref:'Chapman & Johnson, 1994', url:SRCH('Chapman Johnson 1994 limits of anchoring')},
+  {n:14, x:4.6, y:4.8,  s:'amber', p:13, ref:'Bystranowski et al., 2021', url:SRCH('Bystranowski 2021 anchoring effect legal decision making meta-analysis')},
+  // Incentives
+  {n:15, x:2.6, y:6.7,  s:'good', p:1, blabel:'Incentives', ref:'Simmons, LeBoeuf & Nelson, 2010', url:SRCH('Simmons LeBoeuf Nelson 2010 accuracy motivation anchoring adjustment'),
+    reps:[{ref:'Enke et al., 2021 (null incentive effect)', url:SRCH('Enke 2021 incentives cognitive biases anchoring'), outcome:'fail'}]},
+  // Anchor relevance
+  {n:16, x:2.6, y:8.6,  s:'good', p:1, blabel:'Anchor relevance', ref:'Jacowitz & Kahneman, 1995', url:SRCH('Jacowitz Kahneman 1995 measures of anchoring estimation tasks')},
+  {n:17, x:4.6, y:8.6,  s:'good', p:16, ref:'Sugden, Zheng & Zizzo, 2013', url:SRCH('Sugden Zheng Zizzo 2013 not all anchors created equal')}
+];
+let exHit = [];   // [{x,y,dotR,url,ref, rings:[{rad,url,ref}]}]
+
+function drawExampleGraph(){
+  const cv = $('exCanvas'); if(!cv) return;
+  const w = cv.clientWidth; if(!w) return; // hidden tab -> clientWidth 0
+  const dpr = window.devicePixelRatio || 1;
+  const h = Math.max(640, Math.min(Math.round(w * 1.08), 960));
+  cv.style.height = h + 'px';
+  cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
+  const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  ctx.clearRect(0, 0, w, h);
+  const T = theme();
+  const COL = {good:T.good, amber:T.amber};
+
+  let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
+  for(const nd of EX_NODES){ minX=Math.min(minX,nd.x); maxX=Math.max(maxX,nd.x);
+    minY=Math.min(minY,nd.y); maxY=Math.max(maxY,nd.y); }
+  const px=40, py=46;
+  const sx = x => px + (x-minX)/(maxX-minX)*(w-2*px);
+  const sy = y => py + (y-minY)/(maxY-minY)*(h-2*py);
+  const byN = new Map(EX_NODES.map(nd=>[nd.n,nd]));
+
+  // edges
+  for(const nd of EX_NODES){
+    if(nd.p==null) continue;
+    const par = byN.get(nd.p); if(!par) continue;
+    ctx.strokeStyle = COL[nd.s] || T.muted;
+    ctx.globalAlpha = 0.55; ctx.lineWidth = 1.8;
+    ctx.beginPath(); ctx.moveTo(sx(par.x),sy(par.y)); ctx.lineTo(sx(nd.x),sy(nd.y)); ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+
+  // nodes + replication rings
+  exHit = [];
+  for(const nd of EX_NODES){
+    const x=sx(nd.x), y=sy(nd.y);
+    const r = nd.root ? 14 : 12;
+    const c = COL[nd.s] || T.muted;
+    const hit = {x, y, dotR:r+4, url:nd.url, ref:nd.n + '. ' + nd.ref, rings:[]};
+
+    // replication rings (bigger than the dot, easy to hover)
+    const repBase = (nd.root ? 13 : 10);
+    (nd.reps || []).forEach((rep,i)=>{
+      const rad = r + repBase + i*8;
+      ctx.strokeStyle = rep.outcome==='confirm' ? T.good : T.bad;
+      ctx.lineWidth = 3.2; ctx.setLineDash([5,4]);
+      ctx.beginPath(); ctx.arc(x,y,rad,0,7); ctx.stroke(); ctx.setLineDash([]);
+      hit.rings.push({rad, url:rep.url, ref:'↳ replication (' + (rep.outcome==='confirm'?'confirmed':'failed') + '): ' + rep.ref});
+    });
+
+    // root marker ring (purple, solid)
+    if(nd.root){ ctx.strokeStyle=T.root; ctx.lineWidth=2.5; ctx.beginPath(); ctx.arc(x,y,r+5,0,7); ctx.stroke(); }
+
+    // dot
+    ctx.fillStyle = c;
+    ctx.beginPath(); ctx.arc(x,y,r,0,7); ctx.fill();
+
+    // branch label above the head node
+    if(nd.blabel){
+      ctx.fillStyle = T.muted; ctx.font = 'bold 11px -apple-system,sans-serif';
+      ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+      ctx.fillText(nd.blabel, x - r, y - r - 10);
+    }
+    // number inside the dot
+    ctx.fillStyle = '#fff';
+    ctx.font = 'bold ' + (nd.n>=10 ? 11 : 12) + 'px ui-monospace,Consolas,monospace';
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(String(nd.n), x, y+0.5);
+
+    exHit.push(hit);
+  }
+  ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+}
+
+// returns {url,ref} for whatever (dot or replication ring) is under the cursor
+function exHitTest(mx, my){
+  for(const nd of exHit){
+    const d = Math.hypot(mx-nd.x, my-nd.y);
+    if(d <= nd.dotR) return {url:nd.url, ref:nd.ref};
+    for(const rg of nd.rings){ if(d <= rg.rad+6 && d >= rg.rad-6) return {url:rg.url, ref:rg.ref}; }
+  }
+  return null;
+}
+
+(function(){
+  const cv = $('exCanvas'); if(!cv) return;
+  const tip = $('exTip');
+  cv.addEventListener('click', e=>{
+    const rect = cv.getBoundingClientRect();
+    const hit = exHitTest(e.clientX-rect.left, e.clientY-rect.top);
+    if(hit) window.open(hit.url,'_blank','noopener');
+  });
+  cv.addEventListener('mousemove', e=>{
+    const rect = cv.getBoundingClientRect();
+    const mx = e.clientX-rect.left, my = e.clientY-rect.top;
+    const hit = exHitTest(mx, my);
+    cv.style.cursor = hit ? 'pointer' : 'default';
+    if(tip){
+      if(hit){
+        tip.textContent = hit.ref;
+        tip.style.left = (cv.offsetLeft + mx + 14) + 'px';
+        tip.style.top  = (cv.offsetTop  + my) + 'px';
+        tip.hidden = false;
+      } else { tip.hidden = true; }
+    }
+  });
+  cv.addEventListener('mouseleave', ()=>{ if(tip) tip.hidden = true; });
 })();
 
 /* init: start immediately */
