@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Evolution of Research, Optimal Replication Rate Simulator</title>
+<title>REI Model, Balancing Replication, Extension, and Innovation</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 80'><g style='filter:drop-shadow(0 0 3px white)'><line x1='50' y1='74' x2='32' y2='48' stroke='%231a3a6e' stroke-width='5' stroke-linecap='round'/><line x1='50' y1='74' x2='68' y2='48' stroke='%231a3a6e' stroke-width='5' stroke-linecap='round'/><line x1='32' y1='48' x2='20' y2='22' stroke='%231a3a6e' stroke-width='4' stroke-linecap='round'/><line x1='32' y1='48' x2='40' y2='22' stroke='%231a3a6e' stroke-width='4' stroke-linecap='round'/><line x1='68' y1='48' x2='58' y2='22' stroke='%231a3a6e' stroke-width='4' stroke-linecap='round'/><line x1='68' y1='48' x2='70' y2='22' stroke='%231a3a6e' stroke-width='4' stroke-linecap='round'/><line x1='68' y1='48' x2='82' y2='22' stroke='%231a3a6e' stroke-width='4' stroke-linecap='round'/><circle cx='50' cy='74' r='6' fill='%231a3a6e'/><circle cx='32' cy='48' r='5' fill='%231a3a6e'/><circle cx='68' cy='48' r='5' fill='%231a3a6e'/><circle cx='20' cy='22' r='4' fill='%231a3a6e'/><circle cx='40' cy='22' r='4' fill='%231a3a6e'/><circle cx='58' cy='22' r='4' fill='%231a3a6e'/><circle cx='70' cy='22' r='4' fill='%231a3a6e'/><circle cx='82' cy='22' r='4' fill='%231a3a6e'/></g></svg>">
 <style>
   /* ---------- Light theme (default, FLoRA-style) ---------- */
@@ -48,9 +48,44 @@
 
   /* hero -- compact single-line */
   .hero{background:var(--surface); padding:12px 28px 10px; border-bottom:1px solid var(--border)}
-  .hero-inner{display:flex; align-items:center; gap:14px}
+  .hero-inner{display:flex; align-items:center; gap:14px; max-width:1320px; margin:0 auto}
   .hero .mark{display:flex; align-items:center; color:var(--accent); flex-shrink:0}
-  .hero h1{font-family:var(--serif); color:var(--accent); font-size:22px; margin:0; font-weight:700; letter-spacing:.01em}
+  .hero-titles{display:flex; flex-direction:column; gap:1px; min-width:0}
+  .hero h1{font-family:var(--serif); color:var(--accent); font-size:22px; margin:0; font-weight:700; letter-spacing:.01em; line-height:1.1}
+  .hero-sub{color:var(--muted); font-size:12.5px; margin:0; font-weight:500}
+  .walkthrough-btn{margin-left:auto; flex-shrink:0; display:inline-flex; align-items:center; gap:7px;
+    background:var(--accent); color:#fff; border:none; border-radius:8px; padding:9px 16px;
+    font-weight:700; font-size:13px; cursor:pointer; letter-spacing:.01em; transition:filter .15s}
+  .walkthrough-btn:hover{filter:brightness(1.08)}
+
+  /* ---- Walkthrough overlay ---- */
+  .wt-overlay{position:fixed; inset:0; z-index:10000; background:rgba(10,14,20,.62);
+    display:flex; align-items:center; justify-content:center; padding:20px}
+  .wt-overlay[hidden]{display:none}
+  .wt-card{background:var(--panel); border:1px solid var(--border); border-radius:14px;
+    box-shadow:0 18px 60px rgba(0,0,0,.4); width:min(640px,96vw); max-height:94vh;
+    padding:20px 22px 18px; position:relative; display:flex; flex-direction:column}
+  .wt-close{position:absolute; top:12px; right:14px; width:30px; height:30px; border-radius:7px;
+    border:1px solid var(--border); background:var(--panel2); color:var(--muted); font-size:20px;
+    line-height:1; cursor:pointer; transition:background .15s,color .15s}
+  .wt-close:hover{background:var(--bad); color:#fff; border-color:var(--bad)}
+  .wt-head{display:flex; align-items:center; gap:10px; margin-bottom:12px}
+  .wt-badge{font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.1em;
+    color:var(--accent); background:var(--accent-soft); border:1px solid var(--border);
+    border-radius:999px; padding:3px 11px}
+  .wt-title{font-family:var(--serif); color:var(--accent); font-size:18px; margin:0; font-weight:700}
+  .wt-canvas-wrap{background:var(--canvas); border:1px solid var(--border); border-radius:9px}
+  #wtCanvas{display:block; width:100%; border-radius:9px}
+  .wt-caption{font-size:13.5px; line-height:1.6; color:var(--txt); margin:13px 2px 14px; min-height:62px}
+  .wt-nav{display:flex; align-items:center; gap:14px}
+  .wt-btn{font-size:13px; font-weight:700; padding:9px 18px; border-radius:8px; cursor:pointer;
+    border:1px solid var(--border); background:var(--panel2); color:var(--txt); transition:filter .15s,opacity .15s}
+  .wt-btn.primary{background:var(--accent); color:#fff; border:none}
+  .wt-btn:hover:not(:disabled){filter:brightness(1.08)}
+  .wt-btn:disabled{opacity:.4; cursor:default}
+  .wt-dots{display:flex; gap:6px; margin:0 auto}
+  .wt-dot{width:8px; height:8px; border-radius:50%; background:var(--border); transition:background .15s}
+  .wt-dot.on{background:var(--accent)}
 
   .view{padding:24px 28px; max-width:1320px; margin:0 auto}
   .layout{display:grid; grid-template-columns:350px 1fr; gap:20px}
@@ -250,7 +285,9 @@
     .topbar{padding:11px 14px}
     .brand{font-size:13px}
     .hero{padding:8px 14px}
-    .hero h1{font-size:16px}
+    .hero h1{font-size:17px}
+    .hero-sub{font-size:11px}
+    .walkthrough-btn{padding:8px 12px; font-size:12px}
     .view{padding:14px 10px}
     .wip-ribbon{display:none}
     .stat .v{font-size:22px}
@@ -311,7 +348,27 @@
   }
   body.dark .q::after{background:#e6edf3; color:#1f2328}
   .q:hover::after{opacity:1}
+  /* lift the hovered bubble (and its tooltip) above all sibling content so the box is never painted behind */
+  .q:hover{z-index:600}
   .stat .k{display:inline-flex; align-items:center; gap:5px; justify-content:center}
+
+  /* ---- Parameters / Results tables (replace KPI tiles) ---- */
+  #panel-results .rtab-wrap{max-width:520px}
+  .rtab-wrap{position:relative; background:var(--panel); border:1px solid var(--border); border-radius:10px;
+             box-shadow:0 1px 4px var(--shadow); overflow:visible}
+  .rtab-wrap h4{margin:0; padding:11px 16px; font-size:11px; font-weight:700; text-transform:uppercase;
+                letter-spacing:.12em; color:var(--muted); border-bottom:1px solid var(--border)}
+  .rtab{width:100%; border-collapse:collapse; font-size:13px}
+  .rtab tr{border-bottom:1px solid var(--border)}
+  .rtab tr:last-child{border-bottom:none}
+  .rtab tr.grp td{background:var(--panel2); font-size:10px; font-weight:700; text-transform:uppercase;
+                  letter-spacing:.1em; color:var(--muted); padding:5px 16px}
+  .rtab td{padding:7px 16px; vertical-align:middle}
+  .rtab td.name{color:var(--txt)}
+  .rtab td.name .lbl{display:inline-flex; align-items:center; gap:6px}
+  .rtab td.val{text-align:right; font-family:ui-monospace,"SFMono-Regular",Menlo,Consolas,monospace;
+               font-weight:700; color:var(--accent); white-space:nowrap}
+  .rtab td.val .good{color:var(--good)} .rtab td.val .bad{color:var(--bad)} .rtab td.val .sep{color:var(--muted); font-weight:400}
 </style>
 </head>
 <body>
@@ -336,7 +393,14 @@
         </g>
       </svg>
     </div>
-    <h1>Evolution of Research</h1>
+    <div class="hero-titles">
+      <h1>REI Model</h1>
+      <p class="hero-sub">Balancing Replication, Extension, and Innovation</p>
+    </div>
+    <button class="walkthrough-btn" id="walkthroughBtn" title="Step through a guided 10-step example">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l14 9-14 9z"/></svg>
+      Walkthrough
+    </button>
   </div>
 </div>
 
@@ -408,14 +472,14 @@
         <div class="ctrl">
           <label>
             <span class="name">Replication Rate <span class="q" data-tip="Determines what proportion of studies are replications vs. non-replications; when r = 1 only replications are conducted, when r = 0 only new studies are produced">?</span></span>
-            <span class="val" id="v_r">0.05</span></label>
-          <input type="range" id="r" min="0" max="1" step="0.01" value="0.05">
+            <span class="val" id="v_r">0.10</span></label>
+          <input type="range" id="r" min="0" max="1" step="0.01" value="0.10">
         </div>
         <div class="ctrl">
           <label>
             <span class="name">File-drawer Proportion <span class="q" data-tip="Probability that a FAILED replication (negative result) is suppressed and never published. Does not affect passed replications.">?</span></span>
-            <span class="val" id="v_f">0.80</span></label>
-          <input type="range" id="f" min="0" max="1" step="0.01" value="0.80">
+            <span class="val" id="v_f">0.50</span></label>
+          <input type="range" id="f" min="0" max="1" step="0.01" value="0.50">
         </div>
         <div class="ctrl">
           <label>
@@ -469,7 +533,7 @@
         <div class="row">
           <div class="ctrl">
             <label>
-              <span class="name">Max Generations <span class="q" data-tip="Number of research acts the simulation runs. More generations produce a larger, more developed knowledge forest">?</span></span></label>
+              <span class="name">Max Steps <span class="q" data-tip="Number of research acts the simulation runs. More steps produce a larger, more developed knowledge forest">?</span></span></label>
             <input type="number" id="gens" min="10" max="20000" step="10" value="1000">
           </div>
           <div class="ctrl">
@@ -481,14 +545,14 @@
 
         <div class="btns">
           <button class="act" id="startPause" title="Start or pause the live simulation">Start</button>
-          <button class="sec" id="resetBtn" title="Reset the simulation to generation 0">Reset</button>
+          <button class="sec" id="resetBtn" title="Reset the simulation to step 0">Reset</button>
           <div class="speed-toggle" id="speedToggle" title="Simulation speed">
             <div class="seg-track" id="segTrack"></div>
             <button class="seg" data-speed="1">1</button>
             <button class="seg" data-speed="10">10</button>
             <button class="seg" data-speed="100">100</button>
             <button class="seg" data-speed="1000">1000</button>
-            <span class="seg-unit">gen/s</span>
+            <span class="seg-unit">steps/s</span>
           </div>
         </div>
 
@@ -497,42 +561,9 @@
 
     <!-- Output -->
     <div>
-      <div class="stats">
-        <div class="stat c-fp"><div class="v" id="s_fp">-</div><div class="k">FP in literature <span class="q" data-tip="Fraction of currently active findings that are false positives, that is, wrong claims still in the literature.">?</span></div></div>
-        <div class="stat c-fn"><div class="v" id="s_fn">-</div><div class="k">FN pruning rate <span class="q" data-tip="Fraction of all true findings ever published that were incorrectly removed by a failed replication (Type II / false-negative error).">?</span></div></div>
-        <div class="stat c-tp">
-          <div class="v-row"><div class="v" id="s_tp">-</div><div class="v-sep">/</div><div class="v" id="s_fp_count" style="color:var(--bad)">-</div></div>
-          <div class="k">Valid / Invalid <span class="q" data-tip="Active true positives (green) versus active false positives (red) still in the literature.">?</span></div>
-        </div>
-        <div class="stat c-rep">
-          <div class="v-row"><div class="v" id="s_rep_fail" style="color:var(--bad)">-</div><div class="v-sep">/</div><div class="v" id="s_rep_ok" style="color:var(--good)">-</div></div>
-          <div class="k">Repl. failed / confirmed <span class="q" data-tip="Replications that returned negative (red) versus replications that confirmed the finding (green). Failed replications may prune a branch or be filed away.">?</span></div>
-        </div>
-        <div class="stat c-live"><div class="v" id="s_living">-</div><div class="k">Active findings <span class="q" data-tip="Total number of published findings currently in the living literature (not pruned), counting both true and false positives.">?</span></div></div>
-        <div class="stat c-root"><div class="v" id="s_roots">-</div><div class="k">Living paradigms <span class="q" data-tip="Number of independent research strands (root nodes) still in the literature. Each strand is a separate line of inquiry.">?</span></div></div>
-        <div class="stat c-depth"><div class="v" id="s_depth">-</div><div class="k">Longest branch <span class="q" data-tip="Depth of the deepest chain of surviving findings. High values mean at least one paradigm has been extended many times.">?</span></div></div>
-      </div>
-      <div class="activity-row">
-        <div class="act-pill pill-innov">
-          <span class="pill-icon">&#10010;</span>
-          <span class="pill-lbl">Innovations</span>
-          <span class="pill-val" id="s_innov">0</span>
-        </div>
-        <div class="act-pill pill-ext">
-          <span class="pill-icon">&#8594;</span>
-          <span class="pill-lbl">Extensions</span>
-          <span class="pill-val" id="s_ext">0</span>
-        </div>
-        <div class="act-pill pill-rep">
-          <span class="pill-icon">&#10226;</span>
-          <span class="pill-lbl">Replications</span>
-          <span class="pill-val" id="s_rep">0</span>
-        </div>
-        <div class="act-pill pill-gen" id="s_gen">Gen 0 / 500</div>
-      </div>
-
       <div class="plot-tabs" id="plotTabs">
-        <div class="plot-tab active" data-panel="tree">Forest of Knowledge</div>
+        <div class="plot-tab active" data-panel="tree">REI Plot</div>
+        <div class="plot-tab" data-panel="results">Results</div>
         <div class="plot-tab" data-panel="timeline">Timelines</div>
         <div class="plot-tab" data-panel="optimal">Optimal Replication Rate</div>
         <div class="plot-tab" data-panel="about">About</div>
@@ -563,8 +594,37 @@
         </div>
       </div>
 
+      <div class="plot-panel" id="panel-results">
+        <p class="plot-desc">Live outcome metrics for the current run. Hover any row label for an explanation.</p>
+        <div class="rtab-wrap">
+          <h4>Results</h4>
+          <table class="rtab">
+            <tr class="grp"><td colspan="2">Literature composition</td></tr>
+            <tr><td class="name"><span class="lbl">Active findings <span class="q" data-tip="Total number of published findings currently in the living literature (not pruned), counting both true and false positives.">?</span></span></td><td class="val" id="s_living">-</td></tr>
+            <tr><td class="name"><span class="lbl">Valid findings <span class="q" data-tip="Active true positives: genuinely true findings still in the literature.">?</span></span></td><td class="val"><span class="good" id="s_tp">-</span></td></tr>
+            <tr><td class="name"><span class="lbl">Invalid findings <span class="q" data-tip="Active false positives: wrong claims still believed and in the literature.">?</span></span></td><td class="val"><span class="bad" id="s_fp_count">-</span></td></tr>
+            <tr><td class="name"><span class="lbl">FP in literature <span class="q" data-tip="Fraction of currently active findings that are false positives, that is, wrong claims still in the literature.">?</span></span></td><td class="val" id="s_fp">-</td></tr>
+            <tr><td class="name"><span class="lbl">Living paradigms <span class="q" data-tip="Number of independent research strands (root nodes) still in the literature. Each strand is a separate line of inquiry.">?</span></span></td><td class="val" id="s_roots">-</td></tr>
+            <tr><td class="name"><span class="lbl">Longest branch <span class="q" data-tip="Depth of the deepest chain of surviving findings. High values mean at least one paradigm has been extended many times.">?</span></span></td><td class="val" id="s_depth">-</td></tr>
+
+            <tr class="grp"><td colspan="2">Replication</td></tr>
+            <tr><td class="name"><span class="lbl">Replications confirmed <span class="q" data-tip="Replications that returned positive and confirmed the original finding.">?</span></span></td><td class="val"><span class="good" id="s_rep_ok">-</span></td></tr>
+            <tr><td class="name"><span class="lbl">Replications failed <span class="q" data-tip="Replications that returned negative. A failed replication may prune the branch or be filed away.">?</span></span></td><td class="val"><span class="bad" id="s_rep_fail">-</span></td></tr>
+            <tr><td class="name"><span class="lbl">FN pruning rate <span class="q" data-tip="Fraction of all true findings ever published that were incorrectly removed by a failed replication (Type II / false-negative error).">?</span></span></td><td class="val" id="s_fn">-</td></tr>
+            <tr><td class="name"><span class="lbl">Expected success rate <span class="q" data-tip="Theoretical fraction of replications that come back positive when targets are chosen at random, given the current literature precision and the replication false-positive (alpha) and false-negative (beta) rates: precision*(1-beta) + (1-precision)*alpha.">?</span></span></td><td class="val" id="s_exp_rep">-</td></tr>
+            <tr><td class="name"><span class="lbl">Observed success rate <span class="q" data-tip="Among published replications only (failed replications that were filed away are excluded), how many confirmed the finding. Shown as confirmed out of published.">?</span></span></td><td class="val" id="s_obs_rep">-</td></tr>
+
+            <tr class="grp"><td colspan="2">Activity (cumulative)</td></tr>
+            <tr><td class="name"><span class="lbl">Innovations <span class="q" data-tip="Number of brand-new independent findings (new roots) published so far.">?</span></span></td><td class="val" id="s_innov">0</td></tr>
+            <tr><td class="name"><span class="lbl">Extensions <span class="q" data-tip="Number of findings published that build on an existing finding.">?</span></span></td><td class="val" id="s_ext">0</td></tr>
+            <tr><td class="name"><span class="lbl">Replications (total) <span class="q" data-tip="Total number of replication attempts conducted, confirmed and failed together.">?</span></span></td><td class="val" id="s_rep">0</td></tr>
+            <tr><td class="name"><span class="lbl">Step <span class="q" data-tip="Current research act out of the maximum number of steps for this run.">?</span></span></td><td class="val" id="s_gen">0 / 1000</td></tr>
+          </table>
+        </div>
+      </div>
+
       <div class="plot-panel" id="panel-timeline">
-        <p class="plot-desc">KPI values over generations. Hover over either chart to see exact values. Top chart: rates (0-100%). Bottom chart: counts.</p>
+        <p class="plot-desc">KPI values over steps. Hover over either chart to see exact values. Top chart: rates (0-100%). Bottom chart: counts.</p>
         <div class="canvas-wrap" style="margin-bottom:8px">
           <canvas id="tl-pct" height="200"></canvas>
           <div class="legend" id="tl-pct-legend"></div>
@@ -619,7 +679,7 @@
           <h2>What this model does</h2>
           <p>
             Scientific knowledge is represented as a growing <strong>forest of findings</strong>.
-            Every generation, the field performs exactly one act. With probability <code>r</code> it
+            Every step, the field performs exactly one act. With probability <code>r</code> it
             <strong>replicates</strong> an existing finding; otherwise (<code>1 - r</code>) it pursues
             <strong>novelty</strong>. Novelty either founds a brand-new independent paradigm strand
             (probability <code>p_new_root</code>) or <strong>extends</strong> an existing finding.
@@ -696,6 +756,24 @@
     </div>
   </div>
 </section>
+
+<!-- ============================ WALKTHROUGH OVERLAY ============================ -->
+<div class="wt-overlay" id="wtOverlay" hidden>
+  <div class="wt-card">
+    <button class="wt-close" id="wtClose" aria-label="Close walkthrough">&times;</button>
+    <div class="wt-head">
+      <span class="wt-badge" id="wtBadge">Step 1 / 10</span>
+      <h3 class="wt-title">How the REI Model works</h3>
+    </div>
+    <div class="wt-canvas-wrap"><canvas id="wtCanvas"></canvas></div>
+    <p class="wt-caption" id="wtCaption"></p>
+    <div class="wt-nav">
+      <button class="wt-btn" id="wtPrev">Back</button>
+      <div class="wt-dots" id="wtDots"></div>
+      <button class="wt-btn primary" id="wtNext">Next</button>
+    </div>
+  </div>
+</div>
 
 <script>
 /* ============================ Seeded RNG ============================ */
@@ -994,7 +1072,7 @@ function fitCanvas(cv){
   return {ctx, w:cssW, h:cssH};
 }
 
-/* ---- Timeline: per-generation KPI trends ---- */
+/* ---- Timeline: per-step KPI trends ---- */
 let tlHoverX = {pct:-1, cnt:-1};
 
 function drawTimelines(progress){
@@ -1055,7 +1133,7 @@ function drawTlChart(cvId, tl, keys, colors, labels, isPct, T, gens, progress){
       const v=tl[k][gClamped];
       return {label:labels[ki], val:isPct?Math.round(v*100)+'%':Math.round(v), color:colors[ki]};
     });
-    lines.unshift({label:'Gen '+gClamped, val:'', color:T.muted});
+    lines.unshift({label:'Step '+gClamped, val:'', color:T.muted});
     const bx=hx<ix+iw/2?hx+8:hx-140;
     const by=iy+4;
     const bh2=(lines.length+0.5)*17;
@@ -1078,7 +1156,7 @@ function drawTlChart(cvId, tl, keys, colors, labels, isPct, T, gens, progress){
     const x=ix+iw*t/4;
     ctx.fillText(Math.round(gens*t/4), x, iy+ih+16);
   }
-  ctx.fillText('generation', ix+iw/2, h-5);
+  ctx.fillText('step', ix+iw/2, h-5);
 }
 
 function populateTlLegends(){
@@ -1712,12 +1790,16 @@ function updateStats(res){
   $('s_rep_ok').textContent   = res ? res.repOk : '-';
   $('s_roots').textContent  = res ? res.roots : '-';
   $('s_depth').textContent  = res && res.living ? res.maxBranchDepth : '-';
+  $('s_exp_rep').textContent = res ? Math.round(100 * res.expSuccess) + '%' : '-';
+  $('s_obs_rep').textContent = res && res.obsSuccess !== null
+    ? res.repOk + ' / ' + res.repPublished + ' (' + Math.round(100 * res.obsSuccess) + '%)'
+    : (res ? '0 / 0' : '-');
   if(liveState){
     const maxGens = Math.max(10, Math.min(20000, +$('gens').value|0));
     $('s_innov').textContent = liveState.counters.innovations;
     $('s_ext').textContent   = liveState.counters.extensions;
     $('s_rep').textContent   = liveState.counters.replications;
-    $('s_gen').textContent   = 'Gen ' + liveState.gen + ' / ' + maxGens;
+    $('s_gen').textContent   = liveState.gen + ' / ' + maxGens;
   }
 }
 
@@ -1859,7 +1941,7 @@ function liveStep(n){
     const doRep=living.length>0 && s.rand()<r;
     const candidates=living.filter(i=>!s.replicated[i]);
     if(doRep && candidates.length===0){
-      // nothing left to replicate: retry without counting this as a generation
+      // nothing left to replicate: retry without counting this as a step
       if(r<1) step--; // will retry next iteration (guard: r=1 can't loop forever)
       continue;
     } else if(doRep && candidates.length>0){
@@ -1943,13 +2025,23 @@ function liveSnapshot(){
   const fpRate = live.length > 0 ? fp / live.length : 0;           // FP in literature
   const fnRate = (tp + prunedTp) > 0 ? prunedTp / (tp + prunedTp) : 0; // pruned TP / all-TP-ever-published
   // replication outcomes (over all nodes that were ever a replication target)
-  let repOk=0, repFail=0;
-  for(let i=0;i<n;i++) if(s.replicated[i]){ if(s.repPassed[i]) repOk++; else repFail++; }
+  let repOk=0, repFail=0, repFailFiled=0;
+  for(let i=0;i<n;i++) if(s.replicated[i]){
+    if(s.repPassed[i]) repOk++;
+    else { repFail++; if(s.filedAway[i]) repFailFiled++; }
+  }
+  // published replications exclude failed-and-filed-away (negative result never published)
+  const repPublished = repOk + (repFail - repFailFiled);
+  const obsSuccess = repPublished > 0 ? repOk / repPublished : null;
+  // expected success rate of a replication of a RANDOM living target, given replication alpha/beta
+  const ar = +$('ar').value, br = +$('br').value;
+  const prec = live.length ? tp/live.length : 0;
+  const expSuccess = prec * (1 - br) + (1 - prec) * ar;
   // timeline is now an object {fp,fn,tp,living,roots,depth}
   return {
-    nodes, precision:live.length?tp/live.length:0,
+    nodes, precision:prec,
     living:live.length, tp, fp, fpRate, fnRate, roots, maxBranchDepth,
-    prunedTp, totalPruned, repOk, repFail,
+    prunedTp, totalPruned, repOk, repFail, repPublished, obsSuccess, expSuccess,
     timeline:s.timeline, gens:maxGens,
     maxBorn:s.born.length?Math.max(...s.born):1
   };
@@ -2258,6 +2350,187 @@ $('cite-copy-btn')?.addEventListener('click', ()=>{
     btn.textContent='Copied!'; setTimeout(()=>{ btn.textContent=orig; }, 1600);
   });
 });
+
+/* ====================== Guided walkthrough ====================== */
+(function(){
+  const overlay=$('wtOverlay'), cv=$('wtCanvas');
+  if(!overlay||!cv) return;
+
+  // Fixed node layout (x: -3.4..3.4, y: 0..5.2). Root at top, growth downward.
+  const N={
+    A:{x:0.0, y:0.4, parent:null, tp:true},
+    B:{x:-1.4,y:1.9, parent:'A', tp:true},
+    C:{x:1.4, y:1.9, parent:'A', tp:false},
+    D:{x:2.3, y:3.4, parent:'C', tp:false},
+    E:{x:-2.2,y:3.4, parent:'B', tp:true},
+    P:{x:-3.1,y:4.9, parent:'E', tp:false, phantom:true},
+    F:{x:2.9, y:0.7, parent:null, tp:true}
+  };
+  const order=['A','B','C','D','E','P','F'];
+
+  // Each step: short on-canvas tag near the highlighted node + full caption + state mutation.
+  const STEPS=[
+    {hi:'A', tag:'New finding (true)',
+     cap:'Step 1, Innovation. A researcher publishes a brand-new finding. By chance it is true (green dot). It founds the first research strand, marked with a purple ring.',
+     apply:st=>{ st.A.shown=true; }},
+    {hi:'B', tag:'Extension (true)',
+     cap:'Step 2, Extension. A second study builds directly on finding 1. It is also valid (green). Knowledge accumulates along a branch.',
+     apply:st=>{ st.B.shown=true; }},
+    {hi:'C', tag:'Extension (false)',
+     cap:'Step 3, Extension. Another study also builds on finding 1, but this result is a false positive (red). A wrong claim has entered the literature.',
+     apply:st=>{ st.C.shown=true; }},
+    {hi:'D', tag:'Inherited false',
+     cap:'Step 4, Extension of a false finding. Anything built on a false result inherits its falsity, so study 4 is false too (red). False branches can grow unnoticed.',
+     apply:st=>{ st.D.shown=true; }},
+    {hi:'E', tag:'Extension (true)',
+     cap:'Step 5, Extension. Meanwhile the valid branch grows further with another true finding (green).',
+     apply:st=>{ st.E.shown=true; }},
+    {hi:'C', tag:'Replication fails',
+     cap:'Step 6, Replication (fails). Finding 3 is re-tested and does not hold up (red ring). The false result and everything built on it, studies 3 and 4, are pruned from the literature (faded).',
+     apply:st=>{ st.C.replicated=true; st.C.repPassed=false; st.C.pruned=true; st.D.pruned=true; }},
+    {hi:'A', tag:'Replication confirms',
+     cap:'Step 7, Replication (confirms). Finding 1 is re-tested and holds up (green ring). It stays in the literature, now verified.',
+     apply:st=>{ st.A.replicated=true; st.A.repPassed=true; }},
+    {hi:'B', tag:'Filed away (false negative)',
+     cap:'Step 8, Replication filed away. Finding 2 is genuinely true, but its replication comes back negative: a false negative (Type II error), for example from an under-powered study. The negative result is then filed away (dotted ring). The field never learns, so the finding survives, unverified.',
+     apply:st=>{ st.B.replicated=true; st.B.repPassed=false; st.B.filedAway=true; }},
+    {hi:'P', tag:'Unpublished attempt',
+     cap:'Step 9, Extension attempt fails. A study tries to extend finding 5, but the result is negative and goes unpublished (faded dot). Most failed attempts leave only a faint trace.',
+     apply:st=>{ st.P.shown=true; }},
+    {hi:'F', tag:'New paradigm',
+     cap:'Step 10, Innovation. A new independent paradigm is founded (purple ring), unrelated to the first. The forest now holds two separate strands, and the cycle of replication, extension, and innovation continues.',
+     apply:st=>{ st.F.shown=true; }}
+  ];
+
+  let step=0;
+
+  function freshState(){
+    const st={};
+    for(const k of order) st[k]={shown:false, replicated:false, repPassed:false, filedAway:false, pruned:false};
+    return st;
+  }
+  function stateAt(i){
+    const st=freshState();
+    for(let s=0;s<=i;s++) STEPS[s].apply(st);
+    // a node that is replicated/pruned is implicitly shown
+    for(const k of order){ if(st[k].replicated||st[k].pruned) st[k].shown=true; }
+    return st;
+  }
+
+  function fit(){
+    const dpr=window.devicePixelRatio||1;
+    const w=cv.clientWidth||560;
+    const h=Math.max(240, Math.round(w*0.62));
+    cv.style.height=h+'px';
+    cv.width=Math.round(w*dpr); cv.height=Math.round(h*dpr);
+    const ctx=cv.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {ctx,w,h};
+  }
+
+  function drawWT(){
+    const fc=fit(); if(!fc) return;
+    const {ctx,w,h}=fc; const T=theme();
+    ctx.clearRect(0,0,w,h);
+    const st=stateAt(step);
+    const minX=-3.4,maxX=3.4,minY=0,maxY=5.2;
+    const padX=40, padTop=48, padBot=24;
+    const sx=x=>padX+(x-minX)/(maxX-minX)*(w-2*padX);
+    const sy=y=>padTop+(y-minY)/(maxY-minY)*(h-padTop-padBot);
+    const colOf=n=>{
+      const d=N[n], s=st[n];
+      if(d.phantom) return d.tp?T.good:T.bad;
+      if(s.pruned) return d.tp?T.prunedTp:T.prunedFp;
+      return d.tp?T.good:T.bad;
+    };
+
+    // edges
+    for(const k of order){
+      const d=N[k], s=st[k]; if(!s.shown||!d.parent) continue;
+      const ps=st[d.parent]; if(!ps.shown) continue;
+      ctx.globalAlpha = d.phantom?0.5 : (s.pruned?0.4:0.75);
+      ctx.strokeStyle = colOf(k);
+      ctx.lineWidth = d.phantom?1.4:2.4; ctx.lineCap='round';
+      if(d.phantom) ctx.setLineDash([4,4]);
+      ctx.beginPath(); ctx.moveTo(sx(N[d.parent].x),sy(N[d.parent].y)); ctx.lineTo(sx(d.x),sy(d.y)); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.globalAlpha=1;
+
+    // nodes
+    for(const k of order){
+      const d=N[k], s=st[k]; if(!s.shown) continue;
+      const x=sx(d.x), y=sy(d.y), isRoot=d.parent===null;
+      if(d.phantom){
+        ctx.globalAlpha=0.5; ctx.fillStyle=colOf(k);
+        ctx.beginPath(); ctx.arc(x,y,5,0,7); ctx.fill(); ctx.globalAlpha=1;
+        continue;
+      }
+      const R=isRoot?9:7;
+      ctx.globalAlpha = s.pruned?0.55:1;
+      ctx.fillStyle=colOf(k);
+      ctx.beginPath(); ctx.arc(x,y,R,0,7); ctx.fill();
+      ctx.globalAlpha=1;
+      if(isRoot){ ctx.strokeStyle=T.root; ctx.lineWidth=2.4; ctx.beginPath(); ctx.arc(x,y,R+4,0,7); ctx.stroke(); }
+      if(s.replicated){
+        ctx.strokeStyle = s.repPassed?T.good:T.bad; ctx.lineWidth=2.2;
+        if(s.filedAway) ctx.setLineDash([3,3]);
+        ctx.beginPath(); ctx.arc(x,y,R+ (isRoot?8:6),0,7); ctx.stroke(); ctx.setLineDash([]);
+      }
+    }
+
+    // highlight + on-canvas label for the active node
+    const hi=STEPS[step].hi, hd=N[hi], hs=st[hi];
+    if(hd && hs.shown){
+      const x=sx(hd.x), y=sy(hd.y);
+      ctx.strokeStyle=T.amber; ctx.lineWidth=2.4; ctx.setLineDash([5,4]);
+      ctx.beginPath(); ctx.arc(x,y,(hd.parent===null?9:7)+13,0,7); ctx.stroke(); ctx.setLineDash([]);
+      // label box above the node
+      const tag=STEPS[step].tag;
+      ctx.font='bold 12px -apple-system,sans-serif';
+      const tw=ctx.measureText(tag).width, bw=tw+18, bh=22;
+      let bx=x-bw/2, by=y-(hd.parent===null?9:7)-13-bh-6;
+      bx=Math.max(6,Math.min(bx,w-bw-6)); if(by<4) by=y+(hd.parent===null?9:7)+15;
+      ctx.fillStyle=T.amber; roundRectWT(ctx,bx,by,bw,bh,6); ctx.fill();
+      ctx.fillStyle='#fff'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(tag,bx+bw/2,by+bh/2+0.5);
+      ctx.textAlign='left'; ctx.textBaseline='alphabetic';
+    }
+  }
+  function roundRectWT(ctx,x,y,w,h,r){
+    if(ctx.roundRect){ ctx.beginPath(); ctx.roundRect(x,y,w,h,r); return; }
+    ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath();
+  }
+
+  function render(){
+    $('wtBadge').textContent='Step '+(step+1)+' / '+STEPS.length;
+    $('wtCaption').textContent=STEPS[step].cap;
+    $('wtPrev').disabled = step===0;
+    $('wtNext').textContent = step===STEPS.length-1 ? 'Finish' : 'Next';
+    // dots
+    const dots=$('wtDots');
+    dots.innerHTML=STEPS.map((_,i)=>'<span class="wt-dot'+(i===step?' on':'')+'"></span>').join('');
+    drawWT();
+  }
+  function open(){
+    if(isRunning) pauseLive();
+    step=0; overlay.hidden=false; requestAnimationFrame(render);
+  }
+  function close(){ overlay.hidden=true; }
+
+  $('walkthroughBtn').addEventListener('click', open);
+  $('wtClose').addEventListener('click', close);
+  $('wtPrev').addEventListener('click', ()=>{ if(step>0){ step--; render(); } });
+  $('wtNext').addEventListener('click', ()=>{ if(step<STEPS.length-1){ step++; render(); } else close(); });
+  overlay.addEventListener('click', e=>{ if(e.target===overlay) close(); });
+  document.addEventListener('keydown', e=>{
+    if(overlay.hidden) return;
+    if(e.key==='Escape') close();
+    else if(e.key==='ArrowRight') $('wtNext').click();
+    else if(e.key==='ArrowLeft') $('wtPrev').click();
+  });
+  window.addEventListener('resize', ()=>{ if(!overlay.hidden) drawWT(); });
+})();
 
 /* init: start immediately */
 setToggleIcon();
