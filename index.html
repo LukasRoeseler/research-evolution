@@ -116,7 +116,7 @@
     color:var(--muted); font-size:10px; font-weight:700; cursor:help; flex-shrink:0;
   }
   .ctrl label .q::after{
-    content:attr(data-tip); position:absolute; bottom:calc(100% + 7px); left:50%;
+    content:attr(data-tip); position:absolute; top:auto; bottom:calc(100% + 7px); left:50%;
     transform:translateX(-50%); width:240px; background:#1f2328; color:#e6edf3;
     border-radius:8px; padding:8px 11px; font-size:12px; font-weight:400; font-family:-apple-system,sans-serif;
     text-transform:none; letter-spacing:0; line-height:1.5; white-space:normal;
@@ -354,7 +354,7 @@
   .ex-doi{font-size:10.5px; color:var(--muted); margin-left:7px; font-family:ui-monospace,Consolas,monospace}
   .ex-doi:hover{color:var(--accent)}
   .ex-note{display:block; font-size:12.5px; color:var(--muted); margin-top:5px; line-height:1.5}
-  .ex-good{border-left-color:var(--good)}      .ex-good .ex-ref{color:var(--good)}
+  .ex-good{border-left-color:var(--pruned)}    .ex-good .ex-ref{color:var(--muted)}
   .ex-bad{border-left-color:var(--bad)}        .ex-bad .ex-ref{color:var(--bad)}
   .ex-amber{border-left-color:var(--amber)}    .ex-amber .ex-ref{color:var(--amber)}
   .ex-root{border-left-color:var(--root)}      .ex-root .ex-ref{color:var(--root)}
@@ -365,9 +365,10 @@
     font-family:ui-monospace,Consolas,monospace}
   #exCanvas{cursor:pointer}
   .ex-leg-ring{width:12px; height:12px; border-radius:50%; display:inline-block; border:2px dashed var(--bad); box-sizing:border-box}
+  .ex-leg-ring-ok{width:12px; height:12px; border-radius:50%; display:inline-block; border:2px dashed var(--good); box-sizing:border-box}
   .ex-leg-root{width:12px; height:12px; border-radius:50%; display:inline-block; border:2px solid var(--root); box-sizing:border-box}
-  .ex-subrep{display:block; margin:5px 0 0 28px; font-size:12px; color:var(--muted); padding-left:2px; border-left:2px solid var(--bad)}
-  .ex-subrep{padding:2px 0 2px 8px}
+  .ex-subrep{display:block; margin:5px 0 0 28px; font-size:12px; color:var(--muted); border-left:2px solid var(--bad); padding:2px 0 2px 8px}
+  .ex-subrep.ok{border-left-color:var(--good)}
   .ex-subrep .ex-ref{font-size:12.5px}
   .ex-tip{position:absolute; z-index:60; pointer-events:none; transform:translateY(-50%);
     background:#1f2328; color:#e6edf3; font-size:12px; font-weight:600; padding:6px 10px; border-radius:6px;
@@ -715,9 +716,10 @@
           <p class="plot-desc">A worked, deliberately <strong>simplified</strong> example: a slice of the <strong>anchoring-effect</strong> literature rendered as an REI knowledge graph, organised around the structure of R&#246;seler &amp; Sch&#252;tz's meta-analysis. It is illustrative, not exhaustive: each branch stands for a much larger body of work, and many studies are omitted. Each numbered <strong>dot</strong> is an original finding; each <strong>ring</strong> around a dot is a replication of that finding (red dashed = failed). Hover a dot or a ring to see its reference; click to open the source.</p>
 
           <div class="ex-legend">
-            <span><i style="background:var(--good)"></i> original finding (supported)</span>
+            <span><i style="background:var(--pruned)"></i> original finding</span>
             <span><i style="background:var(--amber)"></i> contested / confounded finding</span>
             <span><i class="ex-leg-root"></i> purple ring = founding paradigm (root)</span>
+            <span><i class="ex-leg-ring-ok"></i> green dashed ring = successful replication / meta-analysis</span>
             <span><i class="ex-leg-ring"></i> red dashed ring = failed replication</span>
           </div>
 
@@ -734,6 +736,8 @@
               <a class="ex-ref" href="https://doi.org/10.1126/science.185.4157.1124" target="_blank" rel="noopener">Tversky &amp; Kahneman, 1974</a>
               <span class="ex-doi">10.1126/science.185.4157.1124</span>
               <span class="ex-note">Founding demonstration of anchoring. Large and among the most replicable effects in social psychology, so the root strand stays alive (meta-analytic g = 0.69).</span>
+              <span class="ex-subrep ok">&#8627; Replication (confirmed): <a class="ex-ref" href="https://doi.org/10.2139/ssrn.5114456" target="_blank" rel="noopener">Schley &amp; Weingarten, 2025, 50 Years of Anchoring meta-analysis</a> <span class="ex-doi">10.2139/ssrn.5114456</span></span>
+              <span class="ex-subrep ok">&#8627; Replication (confirmed): <a class="ex-ref" href="https://osf.io/preprints/psyarxiv/wf2tn_v1" target="_blank" rel="noopener">R&#246;seler &amp; Sch&#252;tz, 2024 (meta-analysis)</a> <span class="ex-doi">osf.io/preprints/psyarxiv/wf2tn_v1</span></span>
             </div>
 
             <div class="ex-branch-title">Theory branch: Insufficient Adjustment</div>
@@ -2762,7 +2766,9 @@ const SRCH = q => 'https://scholar.google.com/scholar?q=' + encodeURIComponent(q
 // reps: replication studies, drawn as bigger rings around the dot (not separate dots).
 //   outcome 'fail' = red dashed ring, 'confirm' = green dashed ring. Each is hoverable / clickable.
 const EX_NODES = [
-  {n:1,  x:0.0, y:0.0,  s:'good', root:true, ref:'Tversky & Kahneman, 1974', url:'https://doi.org/10.1126/science.185.4157.1124'},
+  {n:1,  x:0.0, y:0.0,  s:'good', root:true, ref:'Tversky & Kahneman, 1974', url:'https://doi.org/10.1126/science.185.4157.1124',
+    reps:[{ref:'Schley & Weingarten, 2025 (50 Years of Anchoring meta-analysis)', url:'https://doi.org/10.2139/ssrn.5114456', outcome:'confirm'},
+          {ref:'Röseler & Schütz, 2024 (meta-analysis)', url:'https://osf.io/preprints/psyarxiv/wf2tn_v1', outcome:'confirm'}]},
   // Insufficient adjustment
   {n:2,  x:2.6, y:-8.5, s:'good', p:1, blabel:'Insufficient adjustment', ref:'Epley & Gilovich, 2001', url:SRCH('Epley Gilovich 2001 putting adjustment back anchoring heuristic'),
     reps:[{ref:'Röseler, 2024 (falsification test of insufficient adjustment)', url:'https://doi.org/10.15626/MP.2024.4137', outcome:'fail'}]},
@@ -2812,7 +2818,7 @@ function drawExampleGraph(){
   const ctx = cv.getContext('2d'); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
   ctx.clearRect(0, 0, w, h);
   const T = theme();
-  const COL = {good:T.good, amber:T.amber};
+  const COL = {good:T.pruned, amber:T.amber};   // findings drawn grey; replications coloured by outcome
 
   let minX=Infinity,maxX=-Infinity,minY=Infinity,maxY=-Infinity;
   for(const nd of EX_NODES){ minX=Math.min(minX,nd.x); maxX=Math.max(maxX,nd.x);
