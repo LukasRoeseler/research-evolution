@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>REI Model, Balancing Replication, Extension, and Innovation</title>
+<title>VEI Model, Balancing Verification, Extension, and Innovation</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 80'><g style='filter:drop-shadow(0 0 3px white)'><line x1='50' y1='74' x2='32' y2='48' stroke='%231a3a6e' stroke-width='5' stroke-linecap='round'/><line x1='50' y1='74' x2='68' y2='48' stroke='%231a3a6e' stroke-width='5' stroke-linecap='round'/><line x1='32' y1='48' x2='20' y2='22' stroke='%231a3a6e' stroke-width='4' stroke-linecap='round'/><line x1='32' y1='48' x2='40' y2='22' stroke='%231a3a6e' stroke-width='4' stroke-linecap='round'/><line x1='68' y1='48' x2='58' y2='22' stroke='%231a3a6e' stroke-width='4' stroke-linecap='round'/><line x1='68' y1='48' x2='70' y2='22' stroke='%231a3a6e' stroke-width='4' stroke-linecap='round'/><line x1='68' y1='48' x2='82' y2='22' stroke='%231a3a6e' stroke-width='4' stroke-linecap='round'/><circle cx='50' cy='74' r='6' fill='%231a3a6e'/><circle cx='32' cy='48' r='5' fill='%231a3a6e'/><circle cx='68' cy='48' r='5' fill='%231a3a6e'/><circle cx='20' cy='22' r='4' fill='%231a3a6e'/><circle cx='40' cy='22' r='4' fill='%231a3a6e'/><circle cx='58' cy='22' r='4' fill='%231a3a6e'/><circle cx='70' cy='22' r='4' fill='%231a3a6e'/><circle cx='82' cy='22' r='4' fill='%231a3a6e'/></g></svg>">
 <style>
   /* ---------- Light theme (default, FLoRA-style) ---------- */
@@ -38,6 +38,13 @@
   }
   .brand{font-family:var(--serif); font-weight:700; font-size:15px; letter-spacing:.02em; color:var(--header-txt); text-decoration:none}
   .brand:hover{text-decoration:underline; text-underline-offset:3px}
+  .model-nav{display:flex; align-items:center; gap:18px; flex-wrap:wrap; justify-content:center}
+  .model-nav a{
+    font-size:12.5px; font-weight:600; letter-spacing:.02em; color:rgba(255,255,255,.62);
+    text-decoration:none; padding:4px 2px; border-bottom:2px solid transparent; transition:color .15s,border-color .15s;
+  }
+  .model-nav a:hover{color:var(--header-txt)}
+  .model-nav a.active{color:var(--header-txt); border-bottom-color:var(--accent)}
   .toggle{
     width:42px; height:42px; border-radius:50%; cursor:pointer;
     background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.16);
@@ -282,8 +289,10 @@
 
   /* ---- Mobile / touch optimizations ---- */
   @media(max-width:640px){
-    .topbar{padding:11px 14px}
+    .topbar{padding:11px 14px; flex-wrap:wrap; row-gap:8px}
     .brand{font-size:13px}
+    .model-nav{order:3; width:100%; justify-content:flex-start; gap:14px}
+    .model-nav a{font-size:11.5px}
     .hero{padding:8px 14px}
     .hero h1{font-size:17px}
     .hero-sub{font-size:11px}
@@ -416,6 +425,12 @@
 <div class="wip-ribbon">Work in progress</div>
 <div class="topbar">
   <a class="brand" href="https://forrt.org/replication-hub/" target="_blank" rel="noopener">FORRT Replication Hub</a>
+  <nav class="model-nav">
+    <a href="index.html" class="active">Mono-VEIn</a>
+    <a href="bayesian-vein.html">Bayesian VEIn</a>
+    <a href="es-rein.html">ES-REIn</a>
+    <a href="multi-vein.html">Multi-VEIn</a>
+  </nav>
   <button class="toggle" id="themeBtn" title="Switch between light and dark appearance" aria-label="Toggle theme"></button>
 </div>
 
@@ -435,8 +450,8 @@
       </svg>
     </div>
     <div class="hero-titles">
-      <h1>REI Model</h1>
-      <p class="hero-sub">Balancing Replication, Extension, and Innovation</p>
+      <h1>VEI Model</h1>
+      <p class="hero-sub">Balancing Verification, Extension, and Innovation</p>
     </div>
     <button class="walkthrough-btn" id="walkthroughBtn" title="Step through a guided 10-step example">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 3l14 9-14 9z"/></svg>
@@ -509,22 +524,22 @@
           </div>
         </div>
 
-        <div class="param-group">Replications</div>
+        <div class="param-group">Verifications</div>
         <div class="ctrl">
           <label>
-            <span class="name">Replication Rate <span class="q" data-tip="Determines what proportion of studies are replications vs. non-replications; when r = 1 only replications are conducted, when r = 0 only new studies are produced">?</span></span>
+            <span class="name">Verification Rate <span class="q" data-tip="Determines what proportion of studies are verifications vs. non-verifications; when r = 1 only verifications are conducted, when r = 0 only new studies are produced">?</span></span>
             <span class="val" id="v_r">0.10</span></label>
           <input type="range" id="r" min="0" max="1" step="0.01" value="0.10">
         </div>
         <div class="ctrl">
           <label>
-            <span class="name">File-drawer Proportion <span class="q" data-tip="Probability that a FAILED replication (negative result) is suppressed and never published. Does not affect passed replications.">?</span></span>
+            <span class="name">File-drawer Proportion <span class="q" data-tip="Probability that a FAILED verification (negative result) is suppressed and never published. Does not affect passed verifications.">?</span></span>
             <span class="val" id="v_f">0.50</span></label>
           <input type="range" id="f" min="0" max="1" step="0.01" value="0.50">
         </div>
         <div class="ctrl">
           <label>
-            <span class="name">Pruning Resistance <span class="q" data-tip="Even when a failed replication is published, this probability allows the branch to resist pruning. 0 = always pruned (current behaviour); 1 = never pruned.">?</span></span>
+            <span class="name">Pruning Resistance <span class="q" data-tip="Even when a failed verification is published, this probability allows the branch to resist pruning. 0 = always pruned (current behaviour); 1 = never pruned.">?</span></span>
             <span class="val" id="v_pr">0.00</span></label>
           <input type="range" id="pr" min="0" max="1" step="0.01" value="0.00">
         </div>
@@ -538,13 +553,13 @@
         <div class="row">
           <div class="ctrl">
             <label>
-              <span class="name">False Positive &alpha; <span class="q" data-tip="Probability that a replication returns positive despite the original claim being false. Usually lower than for original studies due to pre-registration and closer scrutiny. Default 5%.">?</span></span>
+              <span class="name">False Positive &alpha; <span class="q" data-tip="Probability that a verification returns positive despite the original claim being false. Usually lower than for original studies due to pre-registration and closer scrutiny. Default 5%.">?</span></span>
               <span class="val" id="v_ar">0.05</span></label>
             <input type="range" id="ar" min="0" max="1" step="0.01" value="0.05">
           </div>
           <div class="ctrl">
             <label>
-              <span class="name">False Negative &beta; <span class="q" data-tip="Probability that a replication returns negative despite the original claim being true (under-powered replication). Default 20% corresponds to 80% power, a common target.">?</span></span>
+              <span class="name">False Negative &beta; <span class="q" data-tip="Probability that a verification returns negative despite the original claim being true (under-powered verification). Default 20% corresponds to 80% power, a common target.">?</span></span>
               <span class="val" id="v_br">0.20</span></label>
             <input type="range" id="br" min="0" max="1" step="0.01" value="0.20">
           </div>
@@ -603,10 +618,10 @@
     <!-- Output -->
     <div>
       <div class="plot-tabs" id="plotTabs">
-        <div class="plot-tab active" data-panel="tree">REI Plot</div>
+        <div class="plot-tab active" data-panel="tree">VEI Plot</div>
         <div class="plot-tab" data-panel="results">Results</div>
         <div class="plot-tab" data-panel="timeline">Timelines</div>
-        <div class="plot-tab" data-panel="optimal">Optimal Replication Rate</div>
+        <div class="plot-tab" data-panel="optimal">Optimal Verification Rate</div>
         <div class="plot-tab" data-panel="example">Example</div>
         <div class="plot-tab" data-panel="about">About</div>
       </div>
@@ -621,15 +636,15 @@
             <span><i class="dot" style="background:var(--pruned-fp)"></i> pruned (false positive)</span>
             <span><i class="dot" style="background:var(--pruned-tp)"></i> pruned (true positive)</span>
             <span><i class="ring"></i> root strand</span>
-            <span><i class="ring" style="border-color:var(--good)"></i> replication confirmed</span>
-            <span><i class="ring" style="border-color:var(--bad)"></i> replication failed</span>
-            <span><i class="ring ring-dashed" style="border-color:var(--bad)"></i> replication filed away</span>
+            <span><i class="ring" style="border-color:var(--good)"></i> verification confirmed</span>
+            <span><i class="ring" style="border-color:var(--bad)"></i> verification failed</span>
+            <span><i class="ring ring-dashed" style="border-color:var(--bad)"></i> verification filed away</span>
             <span><i class="dot" style="background:var(--good); opacity:0.42"></i> unpublished (valid finding)</span>
             <span><i class="dot" style="background:var(--bad); opacity:0.42"></i> unpublished (false positive)</span>
           </div>
           <div class="tree-actions">
             <button class="tree-btn" id="btn-innovate">New Innovation</button>
-            <button class="tree-btn" id="btn-replicate" disabled>Replicate</button>
+            <button class="tree-btn" id="btn-replicate" disabled>Verify</button>
             <button class="tree-btn" id="btn-extend" disabled>Extend</button>
             <span class="tree-sel-label" id="tree-sel-label">Tap or click a node to select it</span>
           </div>
@@ -649,17 +664,17 @@
             <tr><td class="name"><span class="lbl">Living paradigms <span class="q" data-tip="Number of independent research strands (root nodes) still in the literature. Each strand is a separate line of inquiry.">?</span></span></td><td class="val" id="s_roots">-</td></tr>
             <tr><td class="name"><span class="lbl">Longest branch <span class="q" data-tip="Depth of the deepest chain of surviving findings. High values mean at least one paradigm has been extended many times.">?</span></span></td><td class="val" id="s_depth">-</td></tr>
 
-            <tr class="grp"><td colspan="2">Replication</td></tr>
-            <tr><td class="name"><span class="lbl">Replications confirmed <span class="q" data-tip="Replications that returned positive and confirmed the original finding.">?</span></span></td><td class="val"><span class="good" id="s_rep_ok">-</span></td></tr>
-            <tr><td class="name"><span class="lbl">Replications failed <span class="q" data-tip="Replications that returned negative. A failed replication may prune the branch or be filed away.">?</span></span></td><td class="val"><span class="bad" id="s_rep_fail">-</span></td></tr>
-            <tr><td class="name"><span class="lbl">FN pruning rate <span class="q" data-tip="Fraction of all true findings ever published that were incorrectly removed by a failed replication (Type II / false-negative error).">?</span></span></td><td class="val" id="s_fn">-</td></tr>
-            <tr><td class="name"><span class="lbl">Expected success rate <span class="q" data-tip="Theoretical fraction of replications that come back positive when targets are chosen at random, given the current literature precision and the replication false-positive (alpha) and false-negative (beta) rates: precision*(1-beta) + (1-precision)*alpha.">?</span></span></td><td class="val" id="s_exp_rep">-</td></tr>
-            <tr><td class="name"><span class="lbl">Observed success rate <span class="q" data-tip="Among published replications only (failed replications that were filed away are excluded), how many confirmed the finding. Shown as confirmed out of published.">?</span></span></td><td class="val" id="s_obs_rep">-</td></tr>
+            <tr class="grp"><td colspan="2">Verification</td></tr>
+            <tr><td class="name"><span class="lbl">Verifications confirmed <span class="q" data-tip="Verifications that returned positive and confirmed the original finding.">?</span></span></td><td class="val"><span class="good" id="s_rep_ok">-</span></td></tr>
+            <tr><td class="name"><span class="lbl">Verifications failed <span class="q" data-tip="Verifications that returned negative. A failed verification may prune the branch or be filed away.">?</span></span></td><td class="val"><span class="bad" id="s_rep_fail">-</span></td></tr>
+            <tr><td class="name"><span class="lbl">FN pruning rate <span class="q" data-tip="Fraction of all true findings ever published that were incorrectly removed by a failed verification (Type II / false-negative error).">?</span></span></td><td class="val" id="s_fn">-</td></tr>
+            <tr><td class="name"><span class="lbl">Expected success rate <span class="q" data-tip="Theoretical fraction of verifications that come back positive when targets are chosen at random, given the current literature precision and the verification false-positive (alpha) and false-negative (beta) rates: precision*(1-beta) + (1-precision)*alpha.">?</span></span></td><td class="val" id="s_exp_rep">-</td></tr>
+            <tr><td class="name"><span class="lbl">Observed success rate <span class="q" data-tip="Among published verifications only (failed verifications that were filed away are excluded), how many confirmed the finding. Shown as confirmed out of published.">?</span></span></td><td class="val" id="s_obs_rep">-</td></tr>
 
             <tr class="grp"><td colspan="2">Activity (cumulative)</td></tr>
             <tr><td class="name"><span class="lbl">Innovations <span class="q" data-tip="Number of brand-new independent findings (new roots) published so far.">?</span></span></td><td class="val" id="s_innov">0</td></tr>
             <tr><td class="name"><span class="lbl">Extensions <span class="q" data-tip="Number of findings published that build on an existing finding.">?</span></span></td><td class="val" id="s_ext">0</td></tr>
-            <tr><td class="name"><span class="lbl">Replications (total) <span class="q" data-tip="Total number of replication attempts conducted, confirmed and failed together.">?</span></span></td><td class="val" id="s_rep">0</td></tr>
+            <tr><td class="name"><span class="lbl">Verifications (total) <span class="q" data-tip="Total number of verification attempts conducted, confirmed and failed together.">?</span></span></td><td class="val" id="s_rep">0</td></tr>
             <tr><td class="name"><span class="lbl">Step <span class="q" data-tip="Current research act out of the maximum number of steps for this run.">?</span></span></td><td class="val" id="s_gen">0 / 1000</td></tr>
           </table>
         </div>
@@ -682,45 +697,45 @@
           <button class="act" id="computeBtn">Compute sweep</button>
           <span style="color:var(--muted);font-size:12.5px">Sweeps all r-values with the current parameters (2,900 simulations). The live simulation keeps running in the background.</span>
         </div>
-        <p class="plot-desc">For each replication rate from 0 (pure exploration) to 1 (pure replication), 100 independent simulations are run and their final precision is averaged. Error bars show one standard deviation. The bar at the optimal rate r* (highest mean precision) is labelled. Colours grade from teal (low replication) through blue to violet (high replication).</p>
+        <p class="plot-desc">For each verification rate from 0 (pure exploration) to 1 (pure verification), 100 independent simulations are run and their final precision is averaged. Error bars show one standard deviation. The bar at the optimal rate r* (highest mean precision) is labelled. Colours grade from teal (low verification) through blue to violet (high verification).</p>
         <div class="canvas-wrap">
           <canvas id="sweep-timeline"></canvas>
           <div class="legend">
-            <span><i class="dot" style="background:hsl(190,70%,48%)"></i> low replication rate</span>
+            <span><i class="dot" style="background:hsl(190,70%,48%)"></i> low verification rate</span>
             <span><i class="dot" style="background:hsl(237,70%,48%)"></i> mid</span>
-            <span><i class="dot" style="background:hsl(285,70%,48%)"></i> high replication rate</span>
+            <span><i class="dot" style="background:hsl(285,70%,48%)"></i> high verification rate</span>
           </div>
         </div>
-        <p class="plot-desc" style="margin-top:14px">Valid findings: mean count of true positives still in the literature (published and not yet retracted) across 100 simulations per replication rate. The bar at the rate maximising valid findings is labelled r*. Note that the precision-maximising rate and the valid-findings-maximising rate can differ.</p>
+        <p class="plot-desc" style="margin-top:14px">Valid findings: mean count of true positives still in the literature (published and not yet retracted) across 100 simulations per verification rate. The bar at the rate maximising valid findings is labelled r*. Note that the precision-maximising rate and the valid-findings-maximising rate can differ.</p>
         <div class="canvas-wrap">
           <canvas id="sweep-tp"></canvas>
           <div class="legend">
-            <span><i class="dot" style="background:hsl(190,70%,48%)"></i> low replication rate</span>
+            <span><i class="dot" style="background:hsl(190,70%,48%)"></i> low verification rate</span>
             <span><i class="dot" style="background:hsl(237,70%,48%)"></i> mid</span>
-            <span><i class="dot" style="background:hsl(285,70%,48%)"></i> high replication rate</span>
+            <span><i class="dot" style="background:hsl(285,70%,48%)"></i> high verification rate</span>
           </div>
         </div>
-        <p class="plot-desc" style="margin-top:14px">Longest branch: mean depth of the deepest chain of still-living findings across 100 simulations per replication rate. A deep chain means some paradigm survived long enough to be extended many times. The bar at the rate maximising mean depth is labelled r*.</p>
+        <p class="plot-desc" style="margin-top:14px">Longest branch: mean depth of the deepest chain of still-living findings across 100 simulations per verification rate. A deep chain means some paradigm survived long enough to be extended many times. The bar at the rate maximising mean depth is labelled r*.</p>
         <div class="canvas-wrap">
           <canvas id="sweep-depth"></canvas>
           <div class="legend">
-            <span><i class="dot" style="background:hsl(190,70%,48%)"></i> low replication rate</span>
+            <span><i class="dot" style="background:hsl(190,70%,48%)"></i> low verification rate</span>
             <span><i class="dot" style="background:hsl(237,70%,48%)"></i> mid</span>
-            <span><i class="dot" style="background:hsl(285,70%,48%)"></i> high replication rate</span>
+            <span><i class="dot" style="background:hsl(285,70%,48%)"></i> high verification rate</span>
           </div>
         </div>
       </div>
 
       <div class="plot-panel" id="panel-example">
         <div class="exgraph">
-          <p class="plot-desc">A worked, deliberately <strong>simplified</strong> example: a slice of the <strong>anchoring-effect</strong> literature rendered as an REI knowledge graph, organised around the structure of R&#246;seler &amp; Sch&#252;tz's meta-analysis. It is illustrative, not exhaustive: each branch stands for a much larger body of work, and many studies are omitted. Each numbered <strong>dot</strong> is an original finding; each <strong>ring</strong> around a dot is a replication of that finding (red dashed = failed). Hover a dot or a ring to see its reference; click to open the source.</p>
+          <p class="plot-desc">A worked, deliberately <strong>simplified</strong> example: a slice of the <strong>anchoring-effect</strong> literature rendered as a VEI knowledge graph, organised around the structure of R&#246;seler &amp; Sch&#252;tz's meta-analysis. It is illustrative, not exhaustive: each branch stands for a much larger body of work, and many studies are omitted. Each numbered <strong>dot</strong> is an original finding; each <strong>ring</strong> around a dot is a verification of that finding (red dashed = failed). Hover a dot or a ring to see its reference; click to open the source.</p>
 
           <div class="ex-legend">
             <span><i style="background:var(--pruned)"></i> original finding</span>
             <span><i style="background:var(--amber)"></i> contested / confounded finding</span>
             <span><i class="ex-leg-root"></i> purple ring = founding paradigm (root)</span>
-            <span><i class="ex-leg-ring-ok"></i> green dashed ring = successful replication / meta-analysis</span>
-            <span><i class="ex-leg-ring"></i> red dashed ring = failed replication</span>
+            <span><i class="ex-leg-ring-ok"></i> green dashed ring = successful verification / meta-analysis</span>
+            <span><i class="ex-leg-ring"></i> red dashed ring = failed verification</span>
           </div>
 
           <div class="canvas-wrap">
@@ -736,8 +751,8 @@
               <a class="ex-ref" href="https://doi.org/10.1126/science.185.4157.1124" target="_blank" rel="noopener">Tversky &amp; Kahneman, 1974</a>
               <span class="ex-doi">10.1126/science.185.4157.1124</span>
               <span class="ex-note">Founding demonstration of anchoring. Large and among the most replicable effects in social psychology, so the root strand stays alive (meta-analytic g = 0.69).</span>
-              <span class="ex-subrep ok">&#8627; Replication (confirmed): <a class="ex-ref" href="https://doi.org/10.2139/ssrn.5114456" target="_blank" rel="noopener">Schley &amp; Weingarten, 2025, 50 Years of Anchoring meta-analysis</a> <span class="ex-doi">10.2139/ssrn.5114456</span></span>
-              <span class="ex-subrep ok">&#8627; Replication (confirmed): <a class="ex-ref" href="https://osf.io/preprints/psyarxiv/wf2tn_v1" target="_blank" rel="noopener">R&#246;seler &amp; Sch&#252;tz, 2024 (meta-analysis)</a> <span class="ex-doi">osf.io/preprints/psyarxiv/wf2tn_v1</span></span>
+              <span class="ex-subrep ok">&#8627; Verification (confirmed): <a class="ex-ref" href="https://doi.org/10.2139/ssrn.5114456" target="_blank" rel="noopener">Schley &amp; Weingarten, 2025, 50 Years of Anchoring meta-analysis</a> <span class="ex-doi">10.2139/ssrn.5114456</span></span>
+              <span class="ex-subrep ok">&#8627; Verification (confirmed): <a class="ex-ref" href="https://osf.io/preprints/psyarxiv/wf2tn_v1" target="_blank" rel="noopener">R&#246;seler &amp; Sch&#252;tz, 2024 (meta-analysis)</a> <span class="ex-doi">osf.io/preprints/psyarxiv/wf2tn_v1</span></span>
             </div>
 
             <div class="ex-branch-title">Theory branch: Insufficient Adjustment</div>
@@ -747,7 +762,7 @@
                 <a class="ex-ref" href="https://scholar.google.com/scholar?q=Epley+Gilovich+2001+putting+adjustment+back+anchoring" target="_blank" rel="noopener">Epley &amp; Gilovich, 2001</a>
                 <span class="ex-doi">DOI: please provide</span>
                 <span class="ex-note">People adjust in discrete steps from self-generated anchors and stop too early.</span>
-                <span class="ex-subrep">&#8627; Replication (failed): <a class="ex-ref" href="https://doi.org/10.15626/MP.2024.4137" target="_blank" rel="noopener">R&#246;seler, 2024 (falsification test of insufficient adjustment)</a> <span class="ex-doi">10.15626/MP.2024.4137</span></span>
+                <span class="ex-subrep">&#8627; Verification (failed): <a class="ex-ref" href="https://doi.org/10.15626/MP.2024.4137" target="_blank" rel="noopener">R&#246;seler, 2024 (falsification test of insufficient adjustment)</a> <span class="ex-doi">10.15626/MP.2024.4137</span></span>
               </div>
               <div class="ex-node ex-good">
                 <span class="ex-num">3</span><span class="ex-badge">Extension</span>
@@ -770,7 +785,7 @@
                 <a class="ex-ref" href="https://scholar.google.com/scholar?q=Mussweiler+Strack+1999+selective+accessibility+anchoring" target="_blank" rel="noopener">Mussweiler &amp; Strack, 1999</a>
                 <span class="ex-doi">DOI: please provide</span>
                 <span class="ex-note">Hypothesis-consistent testing plus semantic priming.</span>
-                <span class="ex-subrep">&#8627; Replication (failed): <a class="ex-ref" href="https://doi.org/10.31234/osf.io/4j5wb" target="_blank" rel="noopener">Bahn&#237;k, 2021, Anchoring does not activate examples associated with the anchor value</a> <span class="ex-doi">10.31234/osf.io/4j5wb</span></span>
+                <span class="ex-subrep">&#8627; Verification (failed): <a class="ex-ref" href="https://doi.org/10.31234/osf.io/4j5wb" target="_blank" rel="noopener">Bahn&#237;k, 2021, Anchoring does not activate examples associated with the anchor value</a> <span class="ex-doi">10.31234/osf.io/4j5wb</span></span>
               </div>
               <div class="ex-node ex-good">
                 <span class="ex-num">6</span><span class="ex-badge">Extension, applied</span>
@@ -787,7 +802,7 @@
                 <a class="ex-ref" href="https://scholar.google.com/scholar?q=Frederick+Mochon+2012+scale+distortion+theory+anchoring" target="_blank" rel="noopener">Frederick &amp; Mochon, 2012</a>
                 <span class="ex-doi">DOI: please provide</span>
                 <span class="ex-note">Anchors distort the response scale rather than the underlying judgment.</span>
-                <span class="ex-subrep">&#8627; Replication (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Bahnik+2021+scale+distortion+anchoring+subsequent+trials" target="_blank" rel="noopener">Bahn&#237;k, 2021 (scale distortion, subsequent trials)</a> <span class="ex-doi">DOI: please provide</span></span>
+                <span class="ex-subrep">&#8627; Verification (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Bahnik+2021+scale+distortion+anchoring+subsequent+trials" target="_blank" rel="noopener">Bahn&#237;k, 2021 (scale distortion, subsequent trials)</a> <span class="ex-doi">DOI: please provide</span></span>
               </div>
             </div>
 
@@ -798,14 +813,14 @@
                 <a class="ex-ref" href="https://scholar.google.com/scholar?q=Reitsma-van+Rooijen+Daamen+2006+subliminal+anchoring" target="_blank" rel="noopener">Reitsma-van Rooijen &amp; Daamen, 2006</a>
                 <span class="ex-doi">DOI: please provide</span>
                 <span class="ex-note">Subliminally presented numbers bias probability estimates.</span>
-                <span class="ex-subrep">&#8627; Replication (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Roeseler+subliminal+anchoring+replication" target="_blank" rel="noopener">R&#246;seler (fails to replicate both subliminal studies)</a> <span class="ex-doi">DOI: please provide</span></span>
+                <span class="ex-subrep">&#8627; Verification (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Roeseler+subliminal+anchoring+replication" target="_blank" rel="noopener">R&#246;seler (fails to verify both subliminal studies)</a> <span class="ex-doi">DOI: please provide</span></span>
               </div>
               <div class="ex-node ex-good">
                 <span class="ex-num">9</span><span class="ex-badge">Extension</span>
                 <a class="ex-ref" href="https://scholar.google.com/scholar?q=Mussweiler+Englich+2005+subliminal+anchoring" target="_blank" rel="noopener">Mussweiler &amp; Englich, 2005</a>
                 <span class="ex-doi">DOI: please provide</span>
                 <span class="ex-note">Subliminal anchoring with a proposed mechanism.</span>
-                <span class="ex-subrep">&#8627; Replication (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Roeseler+subliminal+anchoring+replication" target="_blank" rel="noopener">R&#246;seler (same study; fails to replicate both)</a> <span class="ex-doi">DOI: please provide</span></span>
+                <span class="ex-subrep">&#8627; Verification (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Roeseler+subliminal+anchoring+replication" target="_blank" rel="noopener">R&#246;seler (same study; fails to verify both)</a> <span class="ex-doi">DOI: please provide</span></span>
               </div>
             </div>
 
@@ -816,8 +831,8 @@
                 <a class="ex-ref" href="https://scholar.google.com/scholar?q=Critcher+Gilovich+2008+incidental+environmental+anchors" target="_blank" rel="noopener">Critcher &amp; Gilovich, 2008</a>
                 <span class="ex-doi">DOI: please provide</span>
                 <span class="ex-note">Incidental environmental numbers bias unrelated estimates.</span>
-                <span class="ex-subrep">&#8627; Replication (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Many+Labs+incidental+anchoring+replication" target="_blank" rel="noopener">Many Labs</a> <span class="ex-doi">DOI: please provide</span></span>
-                <span class="ex-subrep">&#8627; Replication (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Shanks+incidental+anchoring+replication+failure" target="_blank" rel="noopener">Shanks et al.</a> <span class="ex-doi">DOI: please provide</span></span>
+                <span class="ex-subrep">&#8627; Verification (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Many+Labs+incidental+anchoring+replication" target="_blank" rel="noopener">Many Labs</a> <span class="ex-doi">DOI: please provide</span></span>
+                <span class="ex-subrep">&#8627; Verification (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Shanks+incidental+anchoring+replication+failure" target="_blank" rel="noopener">Shanks et al.</a> <span class="ex-doi">DOI: please provide</span></span>
               </div>
             </div>
 
@@ -828,7 +843,7 @@
                 <a class="ex-ref" href="https://scholar.google.com/scholar?q=McElroy+Dowd+2007+openness+anchoring" target="_blank" rel="noopener">McElroy &amp; Dowd, 2007</a>
                 <span class="ex-doi">DOI: please provide</span>
                 <span class="ex-note">Openness-to-experience reported to moderate susceptibility to anchors.</span>
-                <span class="ex-subrep">&#8627; Replication (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Cheek+Norem+anchoring+personality+replication" target="_blank" rel="noopener">Cheek &amp; Norem</a> <span class="ex-doi">DOI: please provide</span></span>
+                <span class="ex-subrep">&#8627; Verification (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Cheek+Norem+anchoring+personality+replication" target="_blank" rel="noopener">Cheek &amp; Norem</a> <span class="ex-doi">DOI: please provide</span></span>
               </div>
             </div>
 
@@ -839,7 +854,7 @@
                 <a class="ex-ref" href="https://scholar.google.com/scholar?q=Bergman+Ellingsen+Johannesson+2010+anchoring+cognitive+ability" target="_blank" rel="noopener">Bergman et al., 2010</a>
                 <span class="ex-doi">DOI: please provide</span>
                 <span class="ex-note">Cognitive ability reported to relate to anchoring magnitude.</span>
-                <span class="ex-subrep">&#8627; Replication (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Roeseler+anchoring+cognitive+ability+replication" target="_blank" rel="noopener">R&#246;seler (fails to replicate the cognitive-ability moderation)</a> <span class="ex-doi">DOI: please provide</span></span>
+                <span class="ex-subrep">&#8627; Verification (failed): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Roeseler+anchoring+cognitive+ability+replication" target="_blank" rel="noopener">R&#246;seler (fails to verify the cognitive-ability moderation)</a> <span class="ex-doi">DOI: please provide</span></span>
               </div>
             </div>
 
@@ -866,7 +881,7 @@
                 <a class="ex-ref" href="https://scholar.google.com/scholar?q=Simmons+LeBoeuf+Nelson+2010+accuracy+motivation+anchoring" target="_blank" rel="noopener">Simmons, LeBoeuf &amp; Nelson, 2010</a>
                 <span class="ex-doi">DOI: please provide</span>
                 <span class="ex-note">Accuracy motivation reported to reduce anchoring; long seen as a debiasing lever.</span>
-                <span class="ex-subrep">&#8627; Replication (null): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Enke+2021+incentives+cognitive+biases+anchoring" target="_blank" rel="noopener">Enke et al., 2021</a> <span class="ex-doi">DOI: please provide</span></span>
+                <span class="ex-subrep">&#8627; Verification (null): <a class="ex-ref" href="https://scholar.google.com/scholar?q=Enke+2021+incentives+cognitive+biases+anchoring" target="_blank" rel="noopener">Enke et al., 2021</a> <span class="ex-doi">DOI: please provide</span></span>
               </div>
             </div>
 
@@ -905,7 +920,7 @@
           <p>
             Scientific knowledge is represented as a growing <strong>forest of findings</strong>.
             Every step, the field performs exactly one act. With probability <code>r</code> it
-            <strong>replicates</strong> an existing finding; otherwise (<code>1 - r</code>) it pursues
+            <strong>verifies</strong> an existing finding; otherwise (<code>1 - r</code>) it pursues
             <strong>novelty</strong>. Novelty either founds a brand-new independent paradigm strand
             (probability <code>p_new_root</code>) or <strong>extends</strong> an existing finding.
             The headline outcome is the <strong>precision</strong> of the surviving literature:
@@ -919,15 +934,15 @@
           <h2>Parameters</h2>
           <table>
             <tr><th>Symbol</th><th>Range</th><th>Meaning</th></tr>
-            <tr><td><code>r</code></td><td>0 to 1</td><td>Probability the next act is a replication rather than novelty.</td></tr>
+            <tr><td><code>r</code></td><td>0 to 1</td><td>Probability the next act is a verification rather than novelty.</td></tr>
             <tr><td><code>p_next</code></td><td>0 to 1</td><td>Probability a newly proposed claim (root, or extension of a true base) is actually true.</td></tr>
             <tr><td><code>alpha</code></td><td>0 to 1</td><td>Sensitivity: P(test positive given claim true).</td></tr>
             <tr><td><code>beta</code></td><td>0 to 1</td><td>False-positive rate: P(test positive given claim false).</td></tr>
-            <tr><td><code>f</code></td><td>0 to 1</td><td>File-drawer rate: probability that a <em>failed</em> (negative) replication is suppressed and never published. Passed (positive) replications are always published regardless of <code>f</code>.</td></tr>
+            <tr><td><code>f</code></td><td>0 to 1</td><td>File-drawer rate: probability that a <em>failed</em> (negative) verification is suppressed and never published. Passed (positive) verifications are always published regardless of <code>f</code>.</td></tr>
             <tr><td><code>p_new_root</code></td><td>0 to 1</td><td>Given a novelty act, probability of founding a new independent root instead of extending.</td></tr>
           </table>
 
-          <h2>Optimal Replication Rate tab</h2>
+          <h2>Optimal Verification Rate tab</h2>
           <p>
             Every simulation automatically sweeps <code>r</code> from 0 to 1: in steps of 0.01 at the edges (0–5% and 95–100%) and steps of 0.05 in the middle (10–90%).
             At each step, 100 independent simulations are run (varying only the random seed) and their
@@ -937,11 +952,11 @@
 
           <h2>Mechanics, step by step</h2>
           <ol>
-            <li><strong>Draw act.</strong> With probability <code>r</code> replicate; else pursue novelty. (If no living nodes exist yet, force novelty.)</li>
+            <li><strong>Draw act.</strong> With probability <code>r</code> verify; else pursue novelty. (If no living nodes exist yet, force novelty.)</li>
             <li><strong>Novelty to root or extension.</strong> With probability <code>p_new_root</code> spawn a new root (<code>parentId = null</code>); its truth is drawn via <code>p_next</code>. Otherwise select a branch via Branch Selection, then a node within that branch via Branch Position (Extension settings).</li>
             <li><strong>Inheritance.</strong> If the chosen base is false, the extension is necessarily false. If the base is true, the extension is true with probability <code>p_next</code>. Extensions are worthless if the base is false.</li>
             <li><strong>Testing and publication.</strong> Original studies use false-positive rate <code>alpha_o</code> and false-negative rate <code>beta_o</code>. Failed originals are silently discarded with probability <code>fo</code>; otherwise a faded phantom dot marks the attempt.</li>
-            <li><strong>Replication and pruning.</strong> A replication targets a node selected by the Branch Selection and Branch Position (Replication settings). It is tested with rates <code>alpha_r</code> and <code>beta_r</code>. If positive, the finding is confirmed (solid ring). If negative: suppressed with probability <code>f</code> (dashed ring, finding survives); otherwise published and pruning is attempted with success probability <code>1 - pruning_resistance</code>. A successful prune removes the node and all descendants recursively (retraction cascade).</li>
+            <li><strong>Verification and pruning.</strong> A verification targets a node selected by the Branch Selection and Branch Position (Verification settings). It is tested with rates <code>alpha_r</code> and <code>beta_r</code>. If positive, the finding is confirmed (solid ring). If negative: suppressed with probability <code>f</code> (dashed ring, finding survives); otherwise published and pruning is attempted with success probability <code>1 - pruning_resistance</code>. A successful prune removes the node and all descendants recursively (retraction cascade).</li>
           </ol>
 
           <h2>Reading the phylogeny</h2>
@@ -952,7 +967,7 @@
             <span class="pill" style="color:var(--good)">green</span> true positive,
             <span class="pill" style="color:var(--bad)">red</span> false positive, and
             <span class="pill" style="color:var(--pruned)">grey</span> pruned (refuted by a published
-            replication, along with everything that depended on it). Faded dots are unpublished failed attempts.
+            verification, along with everything that depended on it). Faded dots are unpublished failed attempts.
           </p>
 
           <h2>Branch Selection and Position</h2>
@@ -973,8 +988,8 @@
           <p>
             At <code>r = 0</code> nothing is ever checked, so false positives accumulate and precision
             collapses. At <code>r = 1</code> the field only re-checks and never grows, starving the
-            literature. Somewhere in between, replication prunes enough false strands to keep precision
-            high while still permitting growth, the <strong>optimal replication rate</strong>.
+            literature. Somewhere in between, verification prunes enough false strands to keep precision
+            high while still permitting growth, the <strong>optimal verification rate</strong>.
           </p>
         </div>
       </div>
@@ -988,7 +1003,7 @@
     <button class="wt-close" id="wtClose" aria-label="Close walkthrough">&times;</button>
     <div class="wt-head">
       <span class="wt-badge" id="wtBadge">Step 1 / 10</span>
-      <h3 class="wt-title">How the REI Model works</h3>
+      <h3 class="wt-title">How the VEI Model works</h3>
     </div>
     <div class="wt-canvas-wrap"><canvas id="wtCanvas"></canvas></div>
     <p class="wt-caption" id="wtCaption"></p>
@@ -1790,7 +1805,7 @@ function drawSweepChart(progress){
       ctx.fillText(pt.r.toFixed(2), cx, iy+ih+16);
     }
   });
-  ctx.fillText('replication rate  r', ix+iw/2, h-6);
+  ctx.fillText('verification rate  r', ix+iw/2, h-6);
   ctx.textAlign='left';
 }
 
@@ -1889,7 +1904,7 @@ function drawSweepChartTP(progress){
       ctx.fillText(pt.r.toFixed(2), cx, iy+ih+16);
     }
   });
-  ctx.fillText('replication rate  r', ix+iw/2, h-6);
+  ctx.fillText('verification rate  r', ix+iw/2, h-6);
   ctx.textAlign='left';
 }
 
@@ -1984,7 +1999,7 @@ function drawSweepChartDepth(progress){
       ctx.fillText(pt.r.toFixed(2), cx, iy+ih+16);
     }
   });
-  ctx.fillText('replication rate  r', ix+iw/2, h-6);
+  ctx.fillText('verification rate  r', ix+iw/2, h-6);
   ctx.textAlign='left';
 }
 
@@ -2612,20 +2627,20 @@ $('cite-copy-btn')?.addEventListener('click', ()=>{
     {hi:'E', tag:'Extension (true)',
      cap:'Step 5, Extension. Meanwhile the valid branch grows further with another true finding (green).',
      apply:st=>{ st.E.shown=true; }},
-    {hi:'C', tag:'Replication fails',
-     cap:'Step 6, Replication (fails). Finding 3 is re-tested and does not hold up (red ring). The false result and everything built on it, studies 3 and 4, are pruned from the literature (faded).',
+    {hi:'C', tag:'Verification fails',
+     cap:'Step 6, Verification (fails). Finding 3 is re-tested and does not hold up (red ring). The false result and everything built on it, studies 3 and 4, are pruned from the literature (faded).',
      apply:st=>{ st.C.replicated=true; st.C.repPassed=false; st.C.pruned=true; st.D.pruned=true; }},
-    {hi:'A', tag:'Replication confirms',
-     cap:'Step 7, Replication (confirms). Finding 1 is re-tested and holds up (green ring). It stays in the literature, now verified.',
+    {hi:'A', tag:'Verification confirms',
+     cap:'Step 7, Verification (confirms). Finding 1 is re-tested and holds up (green ring). It stays in the literature, now verified.',
      apply:st=>{ st.A.replicated=true; st.A.repPassed=true; }},
     {hi:'B', tag:'Filed away (false negative)',
-     cap:'Step 8, Replication filed away. Finding 2 is genuinely true, but its replication comes back negative: a false negative (Type II error), for example from an under-powered study. The negative result is then filed away (dotted ring). The field never learns, so the finding survives, unverified.',
+     cap:'Step 8, Verification filed away. Finding 2 is genuinely true, but its verification comes back negative: a false negative (Type II error), for example from an under-powered study. The negative result is then filed away (dotted ring). The field never learns, so the finding survives, unverified.',
      apply:st=>{ st.B.replicated=true; st.B.repPassed=false; st.B.filedAway=true; }},
     {hi:'P', tag:'Unpublished attempt',
      cap:'Step 9, Extension attempt fails. A study tries to extend finding 5, but the result is negative and goes unpublished (faded dot). Most failed attempts leave only a faint trace.',
      apply:st=>{ st.P.shown=true; }},
     {hi:'F', tag:'New paradigm',
-     cap:'Step 10, Innovation. A new independent paradigm is founded (purple ring), unrelated to the first. The forest now holds two separate strands, and the cycle of replication, extension, and innovation continues.',
+     cap:'Step 10, Innovation. A new independent paradigm is founded (purple ring), unrelated to the first. The forest now holds two separate strands, and the cycle of verification, extension, and innovation continues.',
      apply:st=>{ st.F.shown=true; }}
   ];
 
@@ -2763,7 +2778,7 @@ $('cite-copy-btn')?.addEventListener('click', ()=>{
 // Search-link helper for references whose DOI is not yet confirmed (no hallucinated DOIs).
 const SRCH = q => 'https://scholar.google.com/scholar?q=' + encodeURIComponent(q);
 // Each node is an ORIGINAL finding (a dot). s: dot colour (good/amber). root:true draws a purple ring.
-// reps: replication studies, drawn as bigger rings around the dot (not separate dots).
+// reps: verification studies, drawn as bigger rings around the dot (not separate dots).
 //   outcome 'fail' = red dashed ring, 'confirm' = green dashed ring. Each is hoverable / clickable.
 const EX_NODES = [
   {n:1,  x:0.0, y:0.0,  s:'good', root:true, ref:'Tversky & Kahneman, 1974', url:'https://doi.org/10.1126/science.185.4157.1124',
@@ -2783,19 +2798,19 @@ const EX_NODES = [
     reps:[{ref:'Bahník, 2021 (scale distortion, subsequent trials)', url:SRCH('Bahnik 2021 scale distortion anchoring subsequent trials'), outcome:'fail'}]},
   // Subliminal anchoring
   {n:8,  x:2.6, y:-2.8, s:'good', p:1, blabel:'Subliminal anchoring', ref:'Reitsma-van Rooijen & Daamen, 2006', url:SRCH('Reitsma-van Rooijen Daamen 2006 subliminal anchoring probability estimates'),
-    reps:[{ref:'Röseler (failed replication of subliminal anchoring)', url:SRCH('Roeseler subliminal anchoring replication'), outcome:'fail'}]},
+    reps:[{ref:'Röseler (failed verification of subliminal anchoring)', url:SRCH('Roeseler subliminal anchoring replication'), outcome:'fail'}]},
   {n:9,  x:4.6, y:-2.8, s:'good', p:8, ref:'Mussweiler & Englich, 2005', url:SRCH('Mussweiler Englich 2005 subliminal anchoring judgmental consequences'),
-    reps:[{ref:'Röseler (failed replication of subliminal anchoring)', url:SRCH('Roeseler subliminal anchoring replication'), outcome:'fail'}]},
+    reps:[{ref:'Röseler (failed verification of subliminal anchoring)', url:SRCH('Roeseler subliminal anchoring replication'), outcome:'fail'}]},
   // Incidental anchoring
   {n:10, x:2.6, y:-0.9, s:'good', p:1, blabel:'Incidental anchoring', ref:'Critcher & Gilovich, 2008', url:SRCH('Critcher Gilovich 2008 incidental environmental anchors'),
-    reps:[{ref:'Many Labs (failed replication of incidental anchoring)', url:SRCH('Many Labs incidental anchoring replication'), outcome:'fail'},
-          {ref:'Shanks et al. (failed replication of incidental anchoring)', url:SRCH('Shanks incidental anchoring replication failure'), outcome:'fail'}]},
+    reps:[{ref:'Many Labs (failed verification of incidental anchoring)', url:SRCH('Many Labs incidental anchoring replication'), outcome:'fail'},
+          {ref:'Shanks et al. (failed verification of incidental anchoring)', url:SRCH('Shanks incidental anchoring replication failure'), outcome:'fail'}]},
   // Personality
   {n:11, x:2.6, y:1.0,  s:'good', p:1, blabel:'Personality', ref:'McElroy & Dowd, 2007', url:SRCH('McElroy Dowd 2007 openness to experience anchoring'),
-    reps:[{ref:'Cheek & Norem (failed replication of personality moderation)', url:SRCH('Cheek Norem anchoring personality replication'), outcome:'fail'}]},
+    reps:[{ref:'Cheek & Norem (failed verification of personality moderation)', url:SRCH('Cheek Norem anchoring personality replication'), outcome:'fail'}]},
   // Cognitive ability (new branch)
   {n:12, x:2.6, y:2.9,  s:'good', p:1, blabel:'Cognitive ability', ref:'Bergman et al., 2010', url:SRCH('Bergman Ellingsen Johannesson Svensson 2010 anchoring cognitive ability'),
-    reps:[{ref:'Röseler (failed replication of cognitive-ability moderation)', url:SRCH('Roeseler anchoring cognitive ability replication'), outcome:'fail'}]},
+    reps:[{ref:'Röseler (failed verification of cognitive-ability moderation)', url:SRCH('Roeseler anchoring cognitive ability replication'), outcome:'fail'}]},
   // Anchor extremeness / nonlinearity
   {n:13, x:2.6, y:4.8,  s:'amber', p:1, blabel:'Anchor extremeness', ref:'Chapman & Johnson, 1994', url:SRCH('Chapman Johnson 1994 limits of anchoring')},
   {n:14, x:4.6, y:4.8,  s:'amber', p:13, ref:'Bystranowski et al., 2021', url:SRCH('Bystranowski 2021 anchoring effect legal decision making meta-analysis')},
@@ -2838,7 +2853,7 @@ function drawExampleGraph(){
   }
   ctx.globalAlpha = 1;
 
-  // nodes + replication rings
+  // nodes + verification rings
   exHit = [];
   for(const nd of EX_NODES){
     const x=sx(nd.x), y=sy(nd.y);
@@ -2846,14 +2861,14 @@ function drawExampleGraph(){
     const c = COL[nd.s] || T.muted;
     const hit = {x, y, dotR:r+4, url:nd.url, ref:nd.n + '. ' + nd.ref, rings:[]};
 
-    // replication rings (bigger than the dot, easy to hover)
+    // verification rings (bigger than the dot, easy to hover)
     const repBase = (nd.root ? 13 : 10);
     (nd.reps || []).forEach((rep,i)=>{
       const rad = r + repBase + i*8;
       ctx.strokeStyle = rep.outcome==='confirm' ? T.good : T.bad;
       ctx.lineWidth = 3.2; ctx.setLineDash([5,4]);
       ctx.beginPath(); ctx.arc(x,y,rad,0,7); ctx.stroke(); ctx.setLineDash([]);
-      hit.rings.push({rad, url:rep.url, ref:'↳ replication (' + (rep.outcome==='confirm'?'confirmed':'failed') + '): ' + rep.ref});
+      hit.rings.push({rad, url:rep.url, ref:'↳ verification (' + (rep.outcome==='confirm'?'confirmed':'failed') + '): ' + rep.ref});
     });
 
     // root marker ring (purple, solid)
